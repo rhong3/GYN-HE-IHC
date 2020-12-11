@@ -11,7 +11,6 @@ from openslide import OpenSlide
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
-import staintools
 from PIL import Image
 
 
@@ -61,7 +60,7 @@ def v_slide(slp, n_y, x, y, tile_size, stepsize, x0, outdir, level, dp, std):
         wscore = bgcheck(img, tile_size)
         if wscore < 0.5:
             img = img.resize((299, 299))
-            img = normalization(img, std)
+            # img = normalization(img, std)
             if dp:
                 img.save(outdir + "/region_x-{}-y-{}_{}.png".format(image_x, image_y, str(dp)))
                 strr = outdir + "/region_x-{}-y-{}_{}.png".format(image_x, image_y, str(dp))
