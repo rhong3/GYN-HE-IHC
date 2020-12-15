@@ -15,8 +15,14 @@ y = int(slide.properties['openslide.bounds-height'])-int(slide.properties['opens
 
 print([x, y])
 
-tnl = slide.read_region(upperleft, 1, lowerright).convert('LA')
-tnl.save('../align/ori.png')
+tnl = slide.read_region(upperleft, 1, lowerright).convert('RGB')
+tnl.save('../align/ori.jpg')
+
+# tnl=cv2.imread('../align/ori.jpg', 0)
+# tnl = cv2.adaptiveThreshold(tnl,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+
+# cv2.imwrite('../align/ori-x.jpg', tnl)
+
 
 ihc = OpenSlide('../align/collection_0000063573_2020-10-14 14_11_00.scn')
 print(ihc.level_dimensions)
@@ -29,12 +35,17 @@ y = int(ihc.properties['openslide.bounds-height'])-int(ihc.properties['openslide
 
 print([x, y])
 
-itnl = ihc.read_region(upperleft, 1, lowerright).convert('LA')
-itnl.save('../align/ihc.png')
+itnl = ihc.read_region(upperleft, 1, lowerright).convert('RGB')
+itnl.save('../align/ihc.jpg')
+
+# itnl = cv2.imread('../align/ihc.jpg', 0)
+# itnl = cv2.adaptiveThreshold(itnl,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+
+# cv2.imwrite('../align/ihc-x.jpg', itnl)
+
 
 MAX_FEATURES = 500
-GOOD_MATCH_PERCENT = 0.15
-
+GOOD_MATCH_PERCENT = 0.5
 
 def alignImages(im1, im2):
     # Convert images to grayscale
@@ -59,7 +70,7 @@ def alignImages(im1, im2):
 
     # Draw top matches
     imMatches = cv2.drawMatches(im1, keypoints1, im2, keypoints2, matches, None)
-    cv2.imwrite("matches.png", imMatches)
+    cv2.imwrite("../align/matches.jpg", imMatches)
 
     # Extract location of good matches
     points1 = np.zeros((len(matches), 2), dtype=np.float32)
@@ -80,12 +91,12 @@ def alignImages(im1, im2):
 
 
 # Read reference image
-refFilename = "../align/ori.png"
+refFilename = "../align/ori-x.jpg"
 print("Reading reference image : ", refFilename)
 imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
 
 # Read image to be aligned
-imFilename = "../align/ihc.png"
+imFilename = "../align/ihc-x.jpg"
 print("Reading image to align : ", imFilename)
 im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
 
@@ -95,8 +106,8 @@ print("Aligning images ...")
 imReg, h = alignImages(im, imReference)
 
 # Write aligned image to disk.
-outFilename = "../align/aligned.png"
-print("Saving aligned image : ", outFilename);
+outFilename = "../align/aligned.jpg"
+print("Saving aligned image : ", outFilename)
 cv2.imwrite(outFilename, imReg)
 
 # Print estimated homography
