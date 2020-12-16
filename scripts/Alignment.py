@@ -102,7 +102,7 @@ def pad_with(vector, pad_width, iaxis, kwargs):
 
 def optimize(imga, imgb):
     imgb = imgb[:, :, 0]
-    pdd = int(np.amax(imgb.shape))
+    pdd = int(np.amax(imgb.shape)-np.amin(imga.shape)+1)
     print(pdd)
     imga = imga[:, :, 0]
     imga = np.pad(imga, pdd, mode=pad_with).astype('uint8')
@@ -157,8 +157,30 @@ def optimize(imga, imgb):
     best_canvas_out_RGB.save('../align/best_canvas.jpg')
 
 
-    # aligned, homography = alignImages(im1, im2)
-    # return homography
+    # # Read reference image
+    # refFilename = "../align/ori_canvas.jpg"
+    # print("Reading reference image : ", refFilename)
+    # imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
+    #
+    # # Read image to be aligned
+    # imFilename = "../align/best_canvas.jpg"
+    # print("Reading image to align : ", imFilename)
+    # im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
+    #
+    # print("Aligning images ...")
+    # # Registered image will be resotred in imReg.
+    # # The estimated homography will be stored in h.
+    # imReg, h = alignImages(im, imReference)
+    #
+    # # Write aligned image to disk.
+    # outFilename = "../align/aligned.jpg"
+    # print("Saving aligned image : ", outFilename)
+    # cv2.imwrite(outFilename, imReg)
+    #
+    # # Print estimated homography
+    # print("Estimated homography : \n", h)
+    #
+    # return h
 
 
 
@@ -193,34 +215,4 @@ itnl = binarize(itnl, '../align/ihc.jpg')
 
 optimize(tnl, itnl)
 
-
-
-
-
-
-
-
-
-# # Read reference image
-# refFilename = "../align/ihc.jpg"
-# print("Reading reference image : ", refFilename)
-# imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
-#
-# # Read image to be aligned
-# imFilename = "../align/ihc-x.jpg"
-# print("Reading image to align : ", imFilename)
-# im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
-#
-# print("Aligning images ...")
-# # Registered image will be resotred in imReg.
-# # The estimated homography will be stored in h.
-# imReg, h = alignImages(im, imReference)
-#
-# # Write aligned image to disk.
-# outFilename = "../align/aligned.jpg"
-# print("Saving aligned image : ", outFilename)
-# cv2.imwrite(outFilename, imReg)
-#
-# # Print estimated homography
-# print("Estimated homography : \n", h)
 
