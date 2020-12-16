@@ -3,6 +3,32 @@ from openslide import OpenSlide
 import cv2
 import numpy as np
 from PIL import Image
+import staintools
+
+std = staintools.read_image("../colorstandard.png")
+std = staintools.LuminosityStandardizer.standardize(std)
+
+
+# Tile color normalization
+def normalization(img, sttd):
+    img = np.array(img)[:, :, :3]
+    img = staintools.LuminosityStandardizer.standardize(img)
+    normalizer = staintools.StainNormalizer(method='vahadane')
+    normalizer.fit(sttd)
+    img = normalizer.transform(img)
+    img = Image.fromarray(img.astype('uint8'), 'RGB')
+    return img
+
+
+def white(img):
+    img = np.array(img)[:, :, :3]
+    img = np.nan_to_num(img, nan=255, posinf=255, neginf=255)
+    mask = ((img[:, :, :3] > 200).astype(np.uint8) + (img[:, :, :3] < 50).astype(np.uint8))*255
+    img = img + mask
+    img = np.clip(img, 0, 255)
+    img = Image.fromarray(img.astype('uint8'), 'RGB')
+    return img
+
 
 slide = OpenSlide('../align/collection_0000063578_2020-10-13 22_19_26.scn')
 print(slide.level_dimensions)
@@ -16,6 +42,10 @@ y = int(slide.properties['openslide.bounds-height'])-int(slide.properties['opens
 print([x, y])
 
 tnl = slide.read_region(upperleft, 1, lowerright).convert('RGB')
+
+tnl = normalization(tnl, std)
+tnl = white(tnl)
+
 tnl.save('../align/ori.jpg')
 
 # tnl=cv2.imread('../align/ori.jpg', 0)
@@ -36,6 +66,9 @@ y = int(ihc.properties['openslide.bounds-height'])-int(ihc.properties['openslide
 print([x, y])
 
 itnl = ihc.read_region(upperleft, 1, lowerright).convert('RGB')
+
+itnl = white(itnl)
+
 itnl.save('../align/ihc.jpg')
 
 # itnl = cv2.imread('../align/ihc.jpg', 0)
@@ -46,6 +79,7 @@ itnl.save('../align/ihc.jpg')
 
 MAX_FEATURES = 500
 GOOD_MATCH_PERCENT = 0.5
+
 
 def alignImages(im1, im2):
     # Convert images to grayscale
@@ -91,12 +125,12 @@ def alignImages(im1, im2):
 
 
 # Read reference image
-refFilename = "../align/ori-x.jpg"
+refFilename = "../align/ori.jpg"
 print("Reading reference image : ", refFilename)
 imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
 
 # Read image to be aligned
-imFilename = "../align/ihc-x.jpg"
+imFilename = "../align/ihc.jpg"
 print("Reading image to align : ", imFilename)
 im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
 
