@@ -23,30 +23,44 @@ def normalization(img, sttd):
 def white(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=255, posinf=255, neginf=255)
-    mask = ((img[:, :, :3] > 200).astype(np.uint8) + (img[:, :, :3] < 50).astype(np.uint8))*255
-    img = img + mask
+    maska = (img[:, :, :3] > 220).astype(np.uint8)
+    maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
+    maskb = (img[:, :, :3] < 50).astype(np.uint8)
+    maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
+    maskc = (maska + maskb)
+
+    mask = np.empty([maskc.shape[0], maskc.shape[1], 3])
+    mask[:, :, 0] = maskc
+    mask[:, :, 1] = maskc
+    mask[:, :, 2] = maskc
+
+    img = img * (-(mask-1))
     img = np.clip(img, 0, 255)
     img = Image.fromarray(img.astype('uint8'), 'RGB')
+
+    mask = mask*255
+    mask = Image.fromarray(mask.astype('uint8'), 'RGB')
+    mask.save('../align/mask.jpg')
+
     return img
 
 
-slide = OpenSlide('../align/collection_0000063578_2020-10-13 22_19_26.scn')
-print(slide.level_dimensions)
-upperleft = [int(slide.properties['openslide.bounds-x']),
-             int(slide.properties['openslide.bounds-y'])]
-lowerright = [int(int(slide.properties['openslide.bounds-width'])/4),
-              int(int(slide.properties['openslide.bounds-height'])/4)]
-x = int(slide.properties['openslide.bounds-width'])-int(slide.properties['openslide.bounds-x'])
-y = int(slide.properties['openslide.bounds-height'])-int(slide.properties['openslide.bounds-y'])
-
-print([x, y])
-
-tnl = slide.read_region(upperleft, 1, lowerright).convert('RGB')
-
-tnl = normalization(tnl, std)
-tnl = white(tnl)
-
-tnl.save('../align/ori.jpg')
+# slide = OpenSlide('../align/collection_0000063578_2020-10-13 22_19_26.scn')
+# print(slide.level_dimensions)
+# upperleft = [int(slide.properties['openslide.bounds-x']),
+#              int(slide.properties['openslide.bounds-y'])]
+# lowerright = [int(int(slide.properties['openslide.bounds-width'])/4),
+#               int(int(slide.properties['openslide.bounds-height'])/4)]
+# x = int(slide.properties['openslide.bounds-width'])-int(slide.properties['openslide.bounds-x'])
+# y = int(slide.properties['openslide.bounds-height'])-int(slide.properties['openslide.bounds-y'])
+#
+# print([x, y])
+#
+# tnl = slide.read_region(upperleft, 1, lowerright).convert('RGB')
+#
+# tnl = normalization(tnl, std)
+#
+# tnl.save('../align/ori.jpg')
 
 # tnl=cv2.imread('../align/ori.jpg', 0)
 # tnl = cv2.adaptiveThreshold(tnl,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
