@@ -102,7 +102,7 @@ def pad_with(vector, pad_width, iaxis, kwargs):
 
 def optimize(imga, imgb):
     imgb = imgb[:, :, 0]
-    pdd = int(np.amax(imgb.shape)-np.amin(imga.shape)+1)
+    pdd = int(np.amax(imgb.shape)-np.amin(imga.shape[:2])+1)
     print(pdd)
     imga = imga[:, :, 0]
     imga = np.pad(imga, pdd, mode=pad_with).astype('uint8')
