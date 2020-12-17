@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 import staintools
 import skimage.morphology as skm
+from scipy.ndimage.interpolation import rotate
 
 std = staintools.read_image("../colorstandard.png")
 std = staintools.LuminosityStandardizer.standardize(std)
@@ -102,7 +103,7 @@ def pad_with(vector, pad_width, iaxis, kwargs):
 
 def optimize(imga, imgb):
     imgb = imgb[:, :, 0]
-    pdd = int(np.amax(imgb.shape)-np.amin(imga.shape[:2])+1)
+    pdd = int(np.sqrt(imgb.shape[0]**2+imgb.shape[1]**2)-np.amin(imga.shape[:2])+1)
     print(pdd)
     imga = imga[:, :, 0]
     imga = np.pad(imga, pdd, mode=pad_with).astype('uint8')
@@ -112,8 +113,8 @@ def optimize(imga, imgb):
     ori_pad_out_RGB[:, :, 0] = ori_pad_out
     ori_pad_out_RGB[:, :, 1] = ori_pad_out
     ori_pad_out_RGB[:, :, 2] = ori_pad_out
-    ssss = Image.fromarray(ori_pad_out_RGB.astype('uint8'), 'RGB')
-    ssss.save('../align/ori_pad.jpg')
+    ori_pad_out_RGB = Image.fromarray(ori_pad_out_RGB.astype('uint8'), 'RGB')
+    ori_pad_out_RGB.save('../align/ori_pad.jpg')
 
     ori_canvas = np.zeros(imga.shape)
     ori_canvas[pdd:pdd+imgb.shape[0], pdd:pdd+imgb.shape[1]] = imgb
@@ -126,62 +127,67 @@ def optimize(imga, imgb):
     ori_canvas_out_RGB = Image.fromarray(ori_canvas_out_RGB.astype('uint8'), 'RGB')
     ori_canvas_out_RGB.save('../align/ori_canvas.jpg')
 
-    maxx = 0
+    globalmax = 0
     for t in range(2):
         if t == 0:
-            pass
+            imgbt = imgb
         else:
-            imgb = np.transpose(imgb)
-        for r in range(4):
-            imgx = np.rot90(imgb, r)
-            for i in range(0, imga.shape[0]-imgx.shape[0], 1000):
-                for j in range(0, imga.shape[1]-imgx.shape[1], 1000):
-                    canvas = np.zeros(imga.shape)
-                    canvas[i:i + imgx.shape[0], j:j + imgx.shape[1]] = imgx
-                    canvas = canvas.astype('uint8')
+            imgbt = np.transpose(imgb)
+        for r in range(24):
+            imgx = rotate(imgbt, r*15)
+            istart = 0
+            jstart = 0
+            iend = imga.shape[0]-imgx.shape[0]
+            jend = imga.shape[1]-imgx.shape[1]
+            step = int(np.amax([iend, jend]) / 5)
+            maxx = 0
+            best_coor = [t, r, istart, jstart, pdd]
+            sndbest_coor = [t, r, iend, jend, pdd]
+            while step >= 1:
+                print("step size: {}".format(step))
+                for i in range(istart, iend, step):
+                    for j in range(jstart, jend, step):
+                        canvas = np.zeros(imga.shape)
+                        canvas[i:i + imgx.shape[0], j:j + imgx.shape[1]] = imgx
+                        canvas = canvas.astype('uint8')
 
-                    summ = np.sum(np.multiply(imga, canvas))
-                    if summ > maxx:
-                        maxx = summ
-                        best_canvas = canvas
-                        best_coor = [t, r, i, j]
-                        print(maxx)
-                        print(best_coor)
+                        summ = np.sum(np.multiply(imga, canvas))
+                        if summ > maxx:
+                            sndbest_coor = best_coor
+                            maxx = summ
+                            best_coor = [t, r, i, j, pdd]
+                            best_canvas = canvas
+                            print("new local max: {}".format(maxx))
+                            print('new local best coordinate: ')
+                            print(best_coor)
+                istart = np.amin([best_coor[2], sndbest_coor[2]])
+                iend = np.amax([best_coor[2], sndbest_coor[2]])
+                jstart = np.amin([best_coor[3], sndbest_coor[3]])
+                jend = np.amax([best_coor[3], sndbest_coor[3]])
+                if istart == iend:
+                    iend += 1
+                if jstart == jend:
+                    jend += 1
+                step = int(np.amax([int(iend-istart), int(jend-jstart)])/5)
+            if maxx > globalmax:
+                globalmax = maxx
+                globalmax_coor = best_coor
+                globalbest_canvas = best_canvas
+                print("new global max: {}".format(globalmax))
+                print('new global best coordinate: ')
+                print(globalmax_coor)
 
-    best_canvas_out = best_canvas*255
+    print("Global max: {}".format(globalmax))
+    print('Global best coordinate: ')
+    print(globalmax_coor)
+
+    best_canvas_out = globalbest_canvas*255
     best_canvas_out_RGB = np.empty([best_canvas_out.shape[0], best_canvas_out.shape[1], 3])
     best_canvas_out_RGB[:, :, 0] = best_canvas_out
     best_canvas_out_RGB[:, :, 1] = best_canvas_out
     best_canvas_out_RGB[:, :, 2] = best_canvas_out
     best_canvas_out_RGB = Image.fromarray(best_canvas_out_RGB.astype('uint8'), 'RGB')
     best_canvas_out_RGB.save('../align/best_canvas.jpg')
-
-
-    # # Read reference image
-    # refFilename = "../align/ori_canvas.jpg"
-    # print("Reading reference image : ", refFilename)
-    # imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
-    #
-    # # Read image to be aligned
-    # imFilename = "../align/best_canvas.jpg"
-    # print("Reading image to align : ", imFilename)
-    # im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
-    #
-    # print("Aligning images ...")
-    # # Registered image will be resotred in imReg.
-    # # The estimated homography will be stored in h.
-    # imReg, h = alignImages(im, imReference)
-    #
-    # # Write aligned image to disk.
-    # outFilename = "../align/aligned.jpg"
-    # print("Saving aligned image : ", outFilename)
-    # cv2.imwrite(outFilename, imReg)
-    #
-    # # Print estimated homography
-    # print("Estimated homography : \n", h)
-    #
-    # return h
-
 
 
 slide = OpenSlide('../align/collection_0000063578_2020-10-13 22_19_26.scn')
