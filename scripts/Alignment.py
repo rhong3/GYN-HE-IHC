@@ -40,7 +40,7 @@ def binarize(img):
     mask = skm.binary_dilation(mask)
     mask = skm.binary_erosion(mask)
     mask = skm.remove_small_objects(mask, min_size=400000, connectivity=1, in_place=False)
-    mask = skm.remove_small_holes(mask, area_threshold=200000, connectivity=1, in_place=False)
+    mask = skm.remove_small_holes(mask, area_threshold=100000, connectivity=1, in_place=False)
 
     return mask
 
@@ -155,7 +155,6 @@ def overslides(imga, imgb, coor):
     for i in range(3):
         canvasa.append(np.pad(imga[:, :, i], coor[4], mode=pad_with).astype('uint8'))
     canvasa = np.stack(canvasa, axis=2)
-    print(canvasa.shape)
     canvasb = np.zeros(canvasa.shape)
     canvasb[coor[2]:int(coor[2]+imgb.shape[0]), coor[3]:int(coor[3]+imgb.shape[1]), :] = imgb
     canvasc = np.ubyte(0.3 * canvasa + 0.7 * canvasb)
@@ -176,7 +175,7 @@ if __name__ == '__main__':
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/ihc-b.jpg')
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 90, 20)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 90, 10)
 
     ovl = overlap(cvs, he_cvs, coor)
     ovl = cvs_to_img(ovl)
