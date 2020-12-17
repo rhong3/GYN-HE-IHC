@@ -178,8 +178,7 @@ if __name__ == '__main__':
     coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 90, 10)
 
     ovl = overlap(cvs, he_cvs, coor)
-    ovl = cvs_to_img(ovl)
-    ovl.save('../align/overlap.jpg')
+    cvs_to_img(ovl).save('../align/overlap.jpg')
 
     overslides(tnl, itnl, coor).save('../align/slide_overlay.jpg')
 
