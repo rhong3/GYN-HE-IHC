@@ -175,7 +175,7 @@ if __name__ == '__main__':
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/ihc-b.jpg')
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 90, 10)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 5, 20)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/overlap.jpg')
