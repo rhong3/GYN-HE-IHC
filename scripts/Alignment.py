@@ -51,7 +51,7 @@ def pad_with(vector, pad_width, iaxis, kwargs):
     vector[-pad_width[1]:] = pad_value
 
 
-def optimize(imga, imgb, angle=30):
+def optimize(imga, imgb, angle=30, stepdecay=10):
     rot = int(360/angle)
     imgb = imgb[:, :, 0]
     pdd = int(np.sqrt(imgb.shape[0]**2+imgb.shape[1]**2)-np.amin(imga.shape[:2])+1)
@@ -63,7 +63,7 @@ def optimize(imga, imgb, angle=30):
 
     globalmax = 0
     globalbest_canvas = ori_canvas
-    globalmax_coor = [0, 0, pdd, pdd, pdd]
+    globalmax_coor = [0, 0, pdd, pdd, pdd, angle, stepdecay]
     for t in range(2):
         if t == 0:
             imgbt = imgb
@@ -78,7 +78,7 @@ def optimize(imga, imgb, angle=30):
             jstart = 0
             iend = imga.shape[0]-imgx.shape[0]
             jend = imga.shape[1]-imgx.shape[1]
-            step = int(np.amax([iend, jend]) / 10)
+            step = int(np.amax([iend, jend]) / stepdecay)
             maxx = 0
             best_coor = [t, r, istart, jstart, pdd]
             sndbest_coor = [t, r, iend, jend, pdd]
@@ -94,7 +94,7 @@ def optimize(imga, imgb, angle=30):
                         if summ > maxx:
                             sndbest_coor = best_coor
                             maxx = summ
-                            best_coor = [t, r, i, j, pdd]
+                            best_coor = [t, r, i, j, pdd, angle, stepdecay]
                             best_canvas = canvas
                             newmax = True
                 istart = np.amin([best_coor[2], sndbest_coor[2]])
@@ -106,7 +106,7 @@ def optimize(imga, imgb, angle=30):
                 if jstart == jend:
                     jend += 1
                 if newmax:
-                    step = int(np.amax([int(iend-istart), int(jend-jstart)])/10)
+                    step = int(np.amax([int(iend-istart), int(jend-jstart)])/stepdecay)
                 else:
                     break
             if maxx > globalmax:
@@ -145,15 +145,40 @@ def overlap(cvsa, cvsb, coordinate):
     return cvsc
 
 
+def overslides(imga, imgb, coor):
+    imga = np.array(imga)[:, :, :3]
+    imgb = np.array(imgb)[:, :, :3]
+    if coor[0] == 1:
+        imgb = np.transpose(imgb)
+    imgb = rotate(imgb, coor[1]*coor[5])
+    canvasa = np.zeros(imga.shape)
+    for i in range(3):
+        canvasa[:, :, i] = np.pad(imga[:, :, i], coor[4], mode=pad_with).astype('uint8')
+    canvasb = np.zeros(canvasa.shape)
+    canvasb[coor[2]:int(coor[2]+imgb.shape[0]), coor[3]:int(coor[3]+imgb.shape[1]), :] = imgb
+    canvasc = np.ubyte(0.5 * canvasa + 0.5 * canvasb)
+    canvasc = canvasc[coor[4]:int(coor[4]+imga.shape[0]), coor[4]:int(coor[4]+imga.shape[1]), :]
+    outimg = Image.fromarray(canvasc.astype('uint8'), 'RGB')
+
+    return outimg
+
+
 if __name__ == '__main__':
     tnl = read_valid('../align/collection_0000063578_2020-10-13 22_19_26.scn', 'H&E')
-    tnl = binarize(tnl)
+    tnl.save('../align/he.jpg')
+    btnl = binarize(tnl)
+    cvs_to_img(btnl).save('../align/he-b.jpg')
 
     itnl = read_valid('../align/collection_0000063576_2020-10-14 14_13_37.scn', 'IHC')
-    itnl = binarize(itnl)
+    itnl.save('../align/ihc.jpg')
+    bitnl = binarize(itnl)
+    cvs_to_img(bitnl).save('../align/ihc-b.jpg')
 
-    coor, gmax, cvs, he_cvs = optimize(tnl, itnl, 90)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 10)
 
     ovl = overlap(cvs, he_cvs, coor)
     ovl = cvs_to_img(ovl)
     ovl.save('../align/overlap.jpg')
+
+    overslides(tnl, itnl, coor).save('../align/slide_overlay.jpg')
+
