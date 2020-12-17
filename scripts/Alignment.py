@@ -104,7 +104,6 @@ def pad_with(vector, pad_width, iaxis, kwargs):
 def optimize(imga, imgb):
     imgb = imgb[:, :, 0]
     pdd = int(np.sqrt(imgb.shape[0]**2+imgb.shape[1]**2)-np.amin(imga.shape[:2])+1)
-    print(pdd)
     imga = imga[:, :, 0]
     imga = np.pad(imga, pdd, mode=pad_with).astype('uint8')
 
@@ -144,6 +143,7 @@ def optimize(imga, imgb):
             best_coor = [t, r, istart, jstart, pdd]
             sndbest_coor = [t, r, iend, jend, pdd]
             while step >= 1:
+                newmax = False
                 print("step size: {}".format(step))
                 for i in range(istart, iend, step):
                     for j in range(jstart, jend, step):
@@ -157,6 +157,7 @@ def optimize(imga, imgb):
                             maxx = summ
                             best_coor = [t, r, i, j, pdd]
                             best_canvas = canvas
+                            newmax = True
                             print("new local max: {}".format(maxx))
                             print('new local best coordinate: ')
                             print(best_coor)
@@ -168,7 +169,10 @@ def optimize(imga, imgb):
                     iend += 1
                 if jstart == jend:
                     jend += 1
-                step = int(np.amax([int(iend-istart), int(jend-jstart)])/5)
+                if newmax:
+                    step = int(np.amax([int(iend-istart), int(jend-jstart)])/5)
+                else:
+                    step = int(step/10)
             if maxx > globalmax:
                 globalmax = maxx
                 globalmax_coor = best_coor
