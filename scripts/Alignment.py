@@ -142,7 +142,7 @@ def optimize(imga, imgb):
             maxx = 0
             best_coor = [t, r, istart, jstart, pdd]
             sndbest_coor = [t, r, iend, jend, pdd]
-            while step >= 10:
+            while step >= 1:
                 newmax = False
                 print("step size: {}".format(step))
                 for i in range(istart, iend, step):
@@ -172,7 +172,7 @@ def optimize(imga, imgb):
                 if newmax:
                     step = int(np.amax([int(iend-istart), int(jend-jstart)])/5)
                 else:
-                    step = int(step/10)
+                    break
             if maxx > globalmax:
                 globalmax = maxx
                 globalmax_coor = best_coor
