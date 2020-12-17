@@ -78,13 +78,12 @@ def optimize(imga, imgb, angle=30):
             jstart = 0
             iend = imga.shape[0]-imgx.shape[0]
             jend = imga.shape[1]-imgx.shape[1]
-            step = int(np.amax([iend, jend]) / 5)
+            step = int(np.amax([iend, jend]) / 10)
             maxx = 0
             best_coor = [t, r, istart, jstart, pdd]
             sndbest_coor = [t, r, iend, jend, pdd]
             while step >= 1:
                 newmax = False
-                print("step size: {}".format(step))
                 for i in range(istart, iend, step):
                     for j in range(jstart, jend, step):
                         canvas = np.zeros(imga.shape)
@@ -107,7 +106,7 @@ def optimize(imga, imgb, angle=30):
                 if jstart == jend:
                     jend += 1
                 if newmax:
-                    step = int(np.amax([int(iend-istart), int(jend-jstart)])/5)
+                    step = int(np.amax([int(iend-istart), int(jend-jstart)])/10)
                 else:
                     break
             if maxx > globalmax:
