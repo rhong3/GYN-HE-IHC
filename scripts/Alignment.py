@@ -24,7 +24,7 @@ def read_valid(pathtosld, tp):
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 220).astype(np.uint8)
+    maska = (img[:, :, :3] > 200).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
@@ -151,12 +151,14 @@ def overslides(imga, imgb, coor):
     if coor[0] == 1:
         imgb = np.transpose(imgb)
     imgb = rotate(imgb, coor[1]*coor[5])
-    canvasa = np.zeros(imga.shape)
+    canvasa = []
     for i in range(3):
-        canvasa[:, :, i] = np.pad(imga[:, :, i], coor[4], mode=pad_with).astype('uint8')
+        canvasa.append(np.pad(imga[:, :, i], coor[4], mode=pad_with).astype('uint8'))
+    canvasa = np.stack(canvasa, axis=2)
+    print(canvasa.shape)
     canvasb = np.zeros(canvasa.shape)
     canvasb[coor[2]:int(coor[2]+imgb.shape[0]), coor[3]:int(coor[3]+imgb.shape[1]), :] = imgb
-    canvasc = np.ubyte(0.5 * canvasa + 0.5 * canvasb)
+    canvasc = np.ubyte(0.3 * canvasa + 0.7 * canvasb)
     canvasc = canvasc[coor[4]:int(coor[4]+imga.shape[0]), coor[4]:int(coor[4]+imga.shape[1]), :]
     outimg = Image.fromarray(canvasc.astype('uint8'), 'RGB')
 
@@ -174,11 +176,12 @@ if __name__ == '__main__':
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/ihc-b.jpg')
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 10)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 90, 20)
 
     ovl = overlap(cvs, he_cvs, coor)
     ovl = cvs_to_img(ovl)
     ovl.save('../align/overlap.jpg')
 
     overslides(tnl, itnl, coor).save('../align/slide_overlay.jpg')
+
 
