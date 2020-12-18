@@ -21,7 +21,7 @@ def read_valid(pathtosld, tp):
     print([x, y])
     outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
 
-    return outimg
+    return outimg, x, y
 
 
 def binarize(img):
@@ -43,7 +43,7 @@ def binarize(img):
     mask = skm.binary_dilation(mask)
     mask = skm.binary_erosion(mask)
     mask = skm.remove_small_objects(mask, min_size=400000, connectivity=1, in_place=False)
-    mask = skm.remove_small_holes(mask, area_threshold=100000, connectivity=1, in_place=False)
+    mask = skm.remove_small_holes(mask, area_threshold=200000, connectivity=1, in_place=False)
 
     return mask
 
@@ -178,12 +178,12 @@ if __name__ == '__main__':
         PID = row['H&E_ID'].split('-')[0]
         HEID = row['H&E_ID'].split('-')[1]
         try:
-            tnl = read_valid('../images/NYU/{}'.format(row['H&E_File']), 'H&E')
+            tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(row['H&E_File']), 'H&E')
         except openslide.lowlevel.OpenSlideUnsupportedFormatError:
             print('{} File Not Found: {}'.format(row['H&E_ID'], row['H&E_File']))
             continue
         try:
-            itnl = read_valid('../images/NYU/{}'.format(row['IHC_File']), 'IHC')
+            itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(row['IHC_File']), 'IHC')
         except openslide.lowlevel.OpenSlideUnsupportedFormatError:
             print('{} File Not Found: {}'.format(row['IHC_ID'], row['IHC_File']))
             continue
@@ -201,7 +201,7 @@ if __name__ == '__main__':
             pass
 
         print("Now processing {} of {} ...".format(row['IHC_ID'], PID))
-        infolist = [PID, HEID, row['IHC_ID'], row['H&E_File'], row['IHC_File']]
+        infolist = [PID, HEID, row['IHC_ID'], row['H&E_File'], row['IHC_File'], tnl_x, tnl_y, itnl_x, itnl_y]
 
         tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, row['IHC_ID']))
         btnl = binarize(tnl)
@@ -221,7 +221,8 @@ if __name__ == '__main__':
         infolist.extend(coor)
         aligned.append([infolist])
 
-    alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File', 'transpose',
-                                             'rotation', 'istart', 'jstart', 'padding', 'angle', 'step_decay'])
+    alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
+                                               'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
+                                               'istart', 'jstart', 'padding', 'angle', 'step_decay'])
     alignedpd.to_csv('../align/summary.csv', header=True, index=False)
 
