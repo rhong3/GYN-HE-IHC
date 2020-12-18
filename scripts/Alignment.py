@@ -219,7 +219,7 @@ if __name__ == '__main__':
         overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, row['IHC_ID']))
 
         infolist.extend(coor)
-        aligned.append([infolist])
+        aligned.append(infolist)
 
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
