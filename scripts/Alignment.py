@@ -1,4 +1,5 @@
 # IHC and HE alignment
+import openslide
 from openslide import OpenSlide
 import numpy as np
 from PIL import Image
@@ -174,16 +175,16 @@ if __name__ == '__main__':
     ref = pd.read_csv('../NYU/align.csv', header=0)
     aligned = []
     for idx, row in ref.iterrows():
-        PID = row['H&E_ID'].str.split('-')[0]
-        HEID = row['H&E_ID'].str.split('-')[1]
+        PID = row['H&E_ID'].split('-')[0]
+        HEID = row['H&E_ID'].split('-')[1]
         try:
             tnl = read_valid('../images/NYU/{}'.format(row['H&E_File']), 'H&E')
-        except FileNotFoundError:
+        except openslide.lowlevel.OpenSlideUnsupportedFormatError:
             print('{} File Not Found: {}'.format(row['H&E_ID'], row['H&E_File']))
             continue
         try:
             itnl = read_valid('../images/NYU/{}'.format(row['IHC_File']), 'IHC')
-        except FileNotFoundError:
+        except openslide.lowlevel.OpenSlideUnsupportedFormatError:
             print('{} File Not Found: {}'.format(row['IHC_ID'], row['IHC_File']))
             continue
         try:
@@ -199,6 +200,7 @@ if __name__ == '__main__':
         except FileExistsError:
             pass
 
+        print("Now processing {} of {} ...".format(row['IHC_ID'], PID))
         infolist = [PID, HEID, row['IHC_ID'], row['H&E_File'], row['IHC_File']]
 
         tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, row['IHC_File']))
