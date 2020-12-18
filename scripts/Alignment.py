@@ -4,6 +4,8 @@ import numpy as np
 from PIL import Image
 import skimage.morphology as skm
 from scipy.ndimage.interpolation import rotate
+import pandas as pd
+import os
 
 
 def read_valid(pathtosld, tp):
@@ -165,21 +167,59 @@ def overslides(imga, imgb, coor):
 
 
 if __name__ == '__main__':
-    tnl = read_valid('../align/collection_0000063578_2020-10-13 22_19_26.scn', 'H&E')
-    tnl.save('../align/he.jpg')
-    btnl = binarize(tnl)
-    cvs_to_img(btnl).save('../align/he-b.jpg')
+    try:
+        os.mkdir("../align")
+    except FileExistsError:
+        pass
+    ref = pd.read_csv('../NYU/align.csv', header=0)
+    aligned = []
+    for idx, row in ref.iterrows():
+        PID = row['H&E_ID'].str.split('-')[0]
+        HEID = row['H&E_ID'].str.split('-')[1]
+        try:
+            tnl = read_valid('../images/NYU/{}'.format(row['H&E_File']), 'H&E')
+        except FileNotFoundError:
+            print('{} File Not Found: {}'.format(row['H&E_ID'], row['H&E_File']))
+            continue
+        try:
+            itnl = read_valid('../images/NYU/{}'.format(row['IHC_File']), 'IHC')
+        except FileNotFoundError:
+            print('{} File Not Found: {}'.format(row['IHC_ID'], row['IHC_File']))
+            continue
+        try:
+            os.mkdir("../align/{}".format(PID))
+        except FileExistsError:
+            pass
+        try:
+            os.mkdir("../align/{}/{}".format(PID, HEID))
+        except FileExistsError:
+            pass
+        try:
+            os.mkdir("../align/{}/{}/{}".format(PID, HEID, row['IHC_ID']))
+        except FileExistsError:
+            pass
 
-    itnl = read_valid('../align/collection_0000063576_2020-10-14 14_13_37.scn', 'IHC')
-    itnl.save('../align/ihc.jpg')
-    bitnl = binarize(itnl)
-    cvs_to_img(bitnl).save('../align/ihc-b.jpg')
+        infolist = [PID, HEID, row['IHC_ID'], row['H&E_File'], row['IHC_File']]
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 5, 20)
+        tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, row['IHC_File']))
+        btnl = binarize(tnl)
+        cvs_to_img(btnl).save('../align/{}/{}/{}/he-b.jpg'.format(PID, HEID, row['IHC_File']))
 
-    ovl = overlap(cvs, he_cvs, coor)
-    cvs_to_img(ovl).save('../align/overlap.jpg')
+        itnl.save('../align/{}/{}/{}/ihc.jpg'.format(PID, HEID, row['IHC_File']))
+        bitnl = binarize(itnl)
+        cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, row['IHC_File']))
 
-    overslides(tnl, itnl, coor).save('../align/slide_overlay.jpg')
+        coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 10)
 
+        ovl = overlap(cvs, he_cvs, coor)
+        cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, row['IHC_File']))
+
+        overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, row['IHC_File']))
+
+        infolist.extend(coor)
+        aligned.append([infolist])
+
+    alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File', 'transpose',
+                                             'rotation', 'istart', 'jstart', 'padding', 'angle', 'step_decay'])
+    alignedpd.to_csv('../align/summary.csv', header=True, index=False)
 
