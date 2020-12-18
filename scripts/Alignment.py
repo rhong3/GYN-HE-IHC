@@ -203,20 +203,20 @@ if __name__ == '__main__':
         print("Now processing {} of {} ...".format(row['IHC_ID'], PID))
         infolist = [PID, HEID, row['IHC_ID'], row['H&E_File'], row['IHC_File']]
 
-        tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, row['IHC_File']))
+        tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, row['IHC_ID']))
         btnl = binarize(tnl)
-        cvs_to_img(btnl).save('../align/{}/{}/{}/he-b.jpg'.format(PID, HEID, row['IHC_File']))
+        cvs_to_img(btnl).save('../align/{}/{}/{}/he-b.jpg'.format(PID, HEID, row['IHC_ID']))
 
-        itnl.save('../align/{}/{}/{}/ihc.jpg'.format(PID, HEID, row['IHC_File']))
+        itnl.save('../align/{}/{}/{}/ihc.jpg'.format(PID, HEID, row['IHC_ID']))
         bitnl = binarize(itnl)
-        cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, row['IHC_File']))
+        cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, row['IHC_ID']))
 
         coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 10)
 
         ovl = overlap(cvs, he_cvs, coor)
-        cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, row['IHC_File']))
+        cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, row['IHC_ID']))
 
-        overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, row['IHC_File']))
+        overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, row['IHC_ID']))
 
         infolist.extend(coor)
         aligned.append([infolist])
