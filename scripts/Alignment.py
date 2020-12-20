@@ -7,6 +7,7 @@ import skimage.morphology as skm
 from scipy.ndimage.interpolation import rotate
 import pandas as pd
 import os
+import multiprocessing as mp
 
 
 def read_valid(pathtosld, tp):
@@ -42,7 +43,7 @@ def binarize(img):
     mask = skm.binary_closing(mask)
     mask = skm.binary_dilation(mask)
     mask = skm.binary_erosion(mask)
-    mask = skm.remove_small_objects(mask, min_size=400000, connectivity=1, in_place=False)
+    mask = skm.remove_small_objects(mask, min_size=300000, connectivity=1, in_place=False)
     mask = skm.remove_small_holes(mask, area_threshold=200000, connectivity=1, in_place=False)
 
     return mask
@@ -167,59 +168,77 @@ def overslides(imga, imgb, coor):
     return outimg
 
 
+def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
+    PID = HE_ID.split('-')[0]
+    HEID = HE_ID.split('-')[1]
+    try:
+        tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(HE_File), 'H&E')
+    except openslide.lowlevel.OpenSlideUnsupportedFormatError:
+        print('{} File Not Found: {}'.format(HE_ID, HE_File))
+        return None
+    try:
+        itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File), 'IHC')
+    except openslide.lowlevel.OpenSlideUnsupportedFormatError:
+        print('{} File Not Found: {}'.format(IHC_ID, IHC_File))
+        return None
+    try:
+        os.mkdir("../align/{}".format(PID))
+    except FileExistsError:
+        pass
+    try:
+        os.mkdir("../align/{}/{}".format(PID, HEID))
+    except FileExistsError:
+        pass
+    try:
+        os.mkdir("../align/{}/{}/{}".format(PID, HEID, IHC_ID))
+    except FileExistsError:
+        pass
+
+    print("Now processing {} of {} ...".format(IHC_ID, PID))
+    infolist = [PID, HEID, IHC_ID, HE_File, IHC_File, tnl_x, tnl_y, itnl_x, itnl_y]
+
+    tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, IHC_ID))
+    btnl = binarize(tnl)
+    cvs_to_img(btnl).save('../align/{}/{}/{}/he-b.jpg'.format(PID, HEID, IHC_ID))
+
+    itnl.save('../align/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
+    bitnl = binarize(itnl)
+    cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
+
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 10)
+
+    ovl = overlap(cvs, he_cvs, coor)
+    cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
+
+    overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, IHC_ID))
+
+    infolist.extend(coor)
+
+    return infolist
+
+
 if __name__ == '__main__':
     try:
         os.mkdir("../align")
     except FileExistsError:
         pass
     ref = pd.read_csv('../NYU/align.csv', header=0)
-    aligned = []
+
+    # create multiporcessing pool
+    print(mp.cpu_count())
+    pool = mp.Pool(processes=mp.cpu_count())
+    tasks = []
     for idx, row in ref.iterrows():
-        PID = row['H&E_ID'].split('-')[0]
-        HEID = row['H&E_ID'].split('-')[1]
-        try:
-            tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(row['H&E_File']), 'H&E')
-        except openslide.lowlevel.OpenSlideUnsupportedFormatError:
-            print('{} File Not Found: {}'.format(row['H&E_ID'], row['H&E_File']))
-            continue
-        try:
-            itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(row['IHC_File']), 'IHC')
-        except openslide.lowlevel.OpenSlideUnsupportedFormatError:
-            print('{} File Not Found: {}'.format(row['IHC_ID'], row['IHC_File']))
-            continue
-        try:
-            os.mkdir("../align/{}".format(PID))
-        except FileExistsError:
-            pass
-        try:
-            os.mkdir("../align/{}/{}".format(PID, HEID))
-        except FileExistsError:
-            pass
-        try:
-            os.mkdir("../align/{}/{}/{}".format(PID, HEID, row['IHC_ID']))
-        except FileExistsError:
-            pass
+        tasks.append(tuple((row['H&E_File'], row['H&E_ID'], row['IHC_File'], row['IHC_ID'])))
 
-        print("Now processing {} of {} ...".format(row['IHC_ID'], PID))
-        infolist = [PID, HEID, row['IHC_ID'], row['H&E_File'], row['IHC_File'], tnl_x, tnl_y, itnl_x, itnl_y]
-
-        tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, row['IHC_ID']))
-        btnl = binarize(tnl)
-        cvs_to_img(btnl).save('../align/{}/{}/{}/he-b.jpg'.format(PID, HEID, row['IHC_ID']))
-
-        itnl.save('../align/{}/{}/{}/ihc.jpg'.format(PID, HEID, row['IHC_ID']))
-        bitnl = binarize(itnl)
-        cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, row['IHC_ID']))
-
-        coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 5, 20)
-
-        ovl = overlap(cvs, he_cvs, coor)
-        cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, row['IHC_ID']))
-
-        overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, row['IHC_ID']))
-
-        infolist.extend(coor)
-        aligned.append(infolist)
+    # slice images with multiprocessing
+    temp = pool.starmap(main_process, tasks)
+    tempdict = list(temp)
+    pool.close()
+    pool.join()
+    tempdict = list(filter(None, tempdict))
+    aligned = []
+    list(map(aligned.extend, tempdict))
 
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
