@@ -171,16 +171,10 @@ def overslides(imga, imgb, coor):
 def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     PID = HE_ID.split('-')[0]
     HEID = HE_ID.split('-')[1]
-    try:
-        tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(HE_File), 'H&E')
-    except openslide.lowlevel.OpenSlideUnsupportedFormatError:
-        print('{} File Not Found: {}'.format(HE_ID, HE_File))
-        return None
-    try:
-        itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File), 'IHC')
-    except openslide.lowlevel.OpenSlideUnsupportedFormatError:
-        print('{} File Not Found: {}'.format(IHC_ID, IHC_File))
-        return None
+
+    tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(HE_File), 'H&E')
+    itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File), 'IHC')
+
     try:
         os.mkdir("../align/{}".format(PID))
     except FileExistsError:
@@ -205,7 +199,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 10)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 2)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
@@ -229,16 +223,19 @@ if __name__ == '__main__':
     pool = mp.Pool(processes=mp.cpu_count())
     tasks = []
     for idx, row in ref.iterrows():
-        tasks.append(tuple((row['H&E_File'], row['H&E_ID'], row['IHC_File'], row['IHC_ID'])))
+        if os.path.exists('../images/NYU/{}'.format(row['H&E_File'])) \
+                and os.path.exists('../images/NYU/{}'.format(row['IHC_File'])):
+            tasks.append(tuple((row['H&E_File'], row['H&E_ID'], row['IHC_File'], row['IHC_ID'])))
+        else:
+            print('{} and {} paired files not found: {} and {}'.format(row['H&E_ID'], row['IHC_ID'],
+                                                                     row['H&E_File'], row['IHC_File']))
 
     # slice images with multiprocessing
     temp = pool.starmap(main_process, tasks)
     tempdict = list(temp)
     pool.close()
     pool.join()
-    tempdict = list(filter(None, tempdict))
-    aligned = []
-    list(map(aligned.extend, tempdict))
+    aligned = list(filter(None, tempdict))
 
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
