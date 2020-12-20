@@ -188,7 +188,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     except FileExistsError:
         pass
 
-    print("Now processing {} of {} ...".format(IHC_ID, PID))
+    print("Now processing {} of {} ...".format(IHC_ID, PID), flush=True)
     infolist = [PID, HEID, IHC_ID, HE_File, IHC_File, tnl_x, tnl_y, itnl_x, itnl_y]
 
     tnl.save('../align/{}/{}/{}/he.jpg'.format(PID, HEID, IHC_ID))
@@ -199,7 +199,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 180, 2)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 2, 20)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
