@@ -10,6 +10,7 @@ import os
 import multiprocessing as mp
 
 
+# Read original slides, get valid size at 20X, and get low resolution image at level2
 def read_valid(pathtosld, tp):
     slide = OpenSlide(pathtosld)
     upperleft = [int(slide.properties['openslide.bounds-x']),
@@ -25,6 +26,7 @@ def read_valid(pathtosld, tp):
     return outimg, x, y
 
 
+# Binarize images
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
@@ -49,25 +51,32 @@ def binarize(img):
     return mask
 
 
+# Padding helper function
 def pad_with(vector, pad_width, iaxis, kwargs):
     pad_value = kwargs.get('padder', 0)
     vector[:pad_width[0]] = pad_value
     vector[-pad_width[1]:] = pad_value
 
 
+# Optimization method
+# angle is the rotation angle each time
+# stepdecay defines how many positions to select on each side
 def optimize(imga, imgb, angle=30, stepdecay=10):
     rot = int(360/angle)
     imgb = imgb[:, :, 0]
+    # padding size is the diagnal of IHC minus minimum side of HE +1
     pdd = int(np.sqrt(imgb.shape[0]**2+imgb.shape[1]**2)-np.amin(imga.shape[:2])+1)
     imga = imga[:, :, 0]
     imga = np.pad(imga, pdd, mode=pad_with).astype('uint8')
 
+    # original canvas is the padded HE-sized canvas with IHC in the middle
     ori_canvas = np.zeros(imga.shape)
     ori_canvas[pdd:pdd+imgb.shape[0], pdd:pdd+imgb.shape[1]] = imgb
-
+    # default best canvas is the original canvas
     globalmax = 0
     globalbest_canvas = ori_canvas
     globalmax_coor = [0, 0, pdd, pdd, pdd, angle, stepdecay]
+    # t represents transpose; r represents rotation; i and j are coordinates
     for t in range(2):
         if t == 0:
             imgbt = imgb
@@ -75,13 +84,16 @@ def optimize(imga, imgb, angle=30, stepdecay=10):
             imgbt = np.transpose(imgb)
         for r in range(rot):
             imgx = rotate(imgbt, r*angle)
+            # post processing after rotation
             imgx = (imgx > 0.5).astype(np.uint8)
             imgx = skm.remove_small_objects(imgx, min_size=100, connectivity=1, in_place=False)
             imgx = skm.remove_small_holes(imgx, area_threshold=100, connectivity=1, in_place=False)
+            # determine start and end coordinates
             istart = 0
             jstart = 0
             iend = imga.shape[0]-imgx.shape[0]
             jend = imga.shape[1]-imgx.shape[1]
+            # determine the step (width) of each selected position
             step = int(np.amax([iend, jend]) / stepdecay)
             maxx = 0
             best_coor = [t, r, istart, jstart, pdd]
@@ -93,14 +105,17 @@ def optimize(imga, imgb, angle=30, stepdecay=10):
                         canvas = np.zeros(imga.shape)
                         canvas[i:i + imgx.shape[0], j:j + imgx.shape[1]] = imgx
                         canvas = canvas.astype('uint8')
-
+                        # calculate overlap pixels
                         summ = np.sum(np.multiply(imga, canvas))
+                        # determine local max os overlap
                         if summ > maxx:
                             sndbest_coor = best_coor
                             maxx = summ
                             best_coor = [t, r, i, j, pdd, angle, stepdecay]
                             best_canvas = canvas
                             newmax = True
+                # determine next round coordinates based on local max and second max of previous round
+                # if no new max found, move on to next rotation
                 istart = np.amin([best_coor[2], sndbest_coor[2]])
                 iend = np.amax([best_coor[2], sndbest_coor[2]])
                 jstart = np.amin([best_coor[3], sndbest_coor[3]])
@@ -113,6 +128,7 @@ def optimize(imga, imgb, angle=30, stepdecay=10):
                     step = int(np.amax([int(iend-istart), int(jend-jstart)])/stepdecay)
                 else:
                     break
+            # determine if new global max found in current rotation
             if maxx > globalmax:
                 globalmax = maxx
                 globalmax_coor = best_coor
@@ -120,7 +136,7 @@ def optimize(imga, imgb, angle=30, stepdecay=10):
                 print("new global max overlap: {}".format(globalmax))
                 print('new global best coordinate: ')
                 print(globalmax_coor)
-
+    # print and output global max coordinates and canvas
     print("Global max overlap: {}".format(globalmax))
     print('Global best coordinate: ')
     print(globalmax_coor)
@@ -128,6 +144,7 @@ def optimize(imga, imgb, angle=30, stepdecay=10):
     return globalmax_coor, globalmax, globalbest_canvas, imga
 
 
+# Reconstruct RGB images from binary images
 def cvs_to_img(cvss):
     canvas_out = cvss * 255
     if len(canvas_out.shape) == 3:
@@ -142,6 +159,7 @@ def cvs_to_img(cvss):
     return canvas_out_RGB
 
 
+# visualize the overlaps of binary images
 def overlap(cvsa, cvsb, coordinate):
     cvsc = (cvsa+cvsb)/2
     cvsc = cvsc[coordinate[4]:int(cvsc.shape[0]-coordinate[4]), coordinate[4]:int(cvsc.shape[1]-coordinate[4])]
@@ -149,6 +167,7 @@ def overlap(cvsa, cvsb, coordinate):
     return cvsc
 
 
+# lay over optimized IHC onto H&E based on best coordinates
 def overslides(imga, imgb, coor):
     imga = np.array(imga)[:, :, :3]
     imgb = np.array(imgb)[:, :, :3]
@@ -168,6 +187,7 @@ def overslides(imga, imgb, coor):
     return outimg
 
 
+# Main process method for multi-processing
 def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     PID = HE_ID.split('-')[0]
     HEID = HE_ID.split('-')[1]
@@ -230,7 +250,7 @@ if __name__ == '__main__':
             print('{} and {} paired files not found: {} and {}'.format(row['H&E_ID'], row['IHC_ID'],
                                                                      row['H&E_File'], row['IHC_File']))
 
-    # slice images with multiprocessing
+    # process images with multiprocessing
     temp = pool.starmap(main_process, tasks)
     tempdict = list(temp)
     pool.close()
