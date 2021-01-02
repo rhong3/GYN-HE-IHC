@@ -226,10 +226,13 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
 
     infolist.extend(coor)
 
-    with open('../align/summary.csv', 'w', newline='') as csvfile:
-        spamwriter = csv.writer(csvfile, delimiter=',',
+    with open('../align/{}/{}/{}/summary.csv'.format(PID, HEID, IHC_ID), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(infolist)
+        writer.writerow(['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
+                                               'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
+                                               'istart', 'jstart', 'padding', 'angle', 'step_decay'])
+        writer.writerow(infolist)
 
     return infolist
 
