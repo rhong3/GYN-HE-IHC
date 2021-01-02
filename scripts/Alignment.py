@@ -9,6 +9,8 @@ import pandas as pd
 import os
 import multiprocessing as mp
 import csv
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # Read original slides, get valid size at 20X, and get low resolution image at level2
@@ -190,8 +192,13 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     PID = HE_ID.split('-')[0]
     HEID = HE_ID.split('-')[1]
 
-    tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(HE_File))
-    itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File))
+    try:
+        tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(HE_File))
+        itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File))
+    except Exception as e:
+        print('ERROR IN READING IMAGE {}'.format(IHC_ID))
+        print(e)
+        return []
 
     try:
         os.mkdir("../align/{}".format(PID))
@@ -217,7 +224,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 20, 2)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 2, 20)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
