@@ -8,6 +8,7 @@ from scipy.ndimage.interpolation import rotate
 import pandas as pd
 import os
 import multiprocessing as mp
+import csv
 
 
 # Read original slides, get valid size at 20X, and get low resolution image at level2
@@ -19,7 +20,7 @@ def read_valid(pathtosld, tp):
                   int(int(slide.properties['openslide.bounds-height']) / 16)]
     x = int(slide.properties['openslide.bounds-width']) - int(slide.properties['openslide.bounds-x'])
     y = int(slide.properties['openslide.bounds-height']) - int(slide.properties['openslide.bounds-y'])
-    print("{} valid size: ".format(tp))
+    print("{} valid size: ".format(tp), end='')
     print([x, y])
     outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
 
@@ -30,7 +31,7 @@ def read_valid(pathtosld, tp):
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 200).astype(np.uint8)
+    maska = (img[:, :, :3] > 220).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
@@ -61,7 +62,7 @@ def pad_with(vector, pad_width, iaxis, kwargs):
 # Optimization method
 # angle is the rotation angle each time
 # stepdecay defines how many positions to select on each side
-def optimize(imga, imgb, angle=30, stepdecay=10):
+def optimize(imga, imgb, ID, angle=30, stepdecay=10):
     rot = int(360/angle)
     imgb = imgb[:, :, 0]
     # padding size is the diagnal of IHC minus minimum side of HE +1
@@ -133,12 +134,11 @@ def optimize(imga, imgb, angle=30, stepdecay=10):
                 globalmax = maxx
                 globalmax_coor = best_coor
                 globalbest_canvas = best_canvas
-                print("new global max overlap: {}".format(globalmax))
-                print('new global best coordinate: ')
-                print(globalmax_coor)
     # print and output global max coordinates and canvas
+    print(ID, end=' ')
     print("Global max overlap: {}".format(globalmax))
-    print('Global best coordinate: ')
+    print(ID, end=' ')
+    print('Global best coordinate: ', end='')
     print(globalmax_coor)
 
     return globalmax_coor, globalmax, globalbest_canvas, imga
@@ -219,7 +219,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, 2, 20)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 180, 5)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
@@ -227,6 +227,11 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     overslides(tnl, itnl, coor).save('../align/{}/{}/{}/slide_overlay.jpg'.format(PID, HEID, IHC_ID))
 
     infolist.extend(coor)
+
+    with open('../align/summary.csv', 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=' ',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerow(infolist)
 
     return infolist
 
@@ -260,5 +265,5 @@ if __name__ == '__main__':
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
                                                'istart', 'jstart', 'padding', 'angle', 'step_decay'])
-    alignedpd.to_csv('../align/summary.csv', header=True, index=False)
+    alignedpd.to_csv('../align/final_summary.csv', header=True, index=False)
 
