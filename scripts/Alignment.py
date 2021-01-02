@@ -29,7 +29,7 @@ def read_valid(pathtosld):
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 220).astype(np.uint8)
+    maska = (img[:, :, :3] > 210).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
@@ -170,7 +170,7 @@ def overslides(imga, imgb, coor):
     imga = np.array(imga)[:, :, :3]
     imgb = np.array(imgb)[:, :, :3]
     if coor[0] == 1:
-        imgb = np.transpose(imgb)
+        imgb = np.transpose(imgb, (1, 0, 2))
     imgb = rotate(imgb, coor[1]*coor[5])
     canvasa = []
     for i in range(3):
