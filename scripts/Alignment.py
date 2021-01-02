@@ -217,7 +217,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 180, 5)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 20, 2)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
