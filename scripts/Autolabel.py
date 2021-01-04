@@ -29,7 +29,8 @@ def read_valid(pathtosld):
 
 # Reconstruct RGB images from binary images
 def cvs_to_img(cvss):
-    canvas_out_RGB = Image.fromarray(cvss.astype('uint8'), 'RGB')
+    canvas_out = cvss*255
+    canvas_out_RGB = Image.fromarray(canvas_out.astype('uint8'))
     return canvas_out_RGB
 
 
@@ -37,7 +38,7 @@ def cvs_to_img(cvss):
 def threshold(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 190).astype(np.uint8)
+    maska = (img[:, :, :3] > 160).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
@@ -49,9 +50,8 @@ def threshold(img):
     mask[:, :, 2] = maskc
 
     mask = (-(mask-1))
-    img = img*mask
 
-    return img
+    return mask
 
 
 # Main process method for multi-processing
@@ -79,7 +79,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
 
     itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
     bitnl = threshold(itnl)
-    cvs_to_img(bitnl).save('../autolabel/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
+    cvs_to_img(bitnl).save('../autolabel/{}/{}/{}/ihc-b.png'.format(PID, HEID, IHC_ID))
 
 
 if __name__ == '__main__':
