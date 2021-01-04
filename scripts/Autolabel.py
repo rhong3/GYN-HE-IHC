@@ -1,5 +1,6 @@
 # Gynecological cancers H&E IHC project at NYU
 # Auto-labeling
+from Alignment import *
 from openslide import OpenSlide
 import numpy as np
 from PIL import Image
@@ -11,27 +12,6 @@ import multiprocessing as mp
 import csv
 import warnings
 warnings.filterwarnings("ignore")
-
-
-# Read original slides, get valid size at 20X, and get low resolution image at level2
-def read_valid(pathtosld):
-    slide = OpenSlide(pathtosld)
-    upperleft = [int(slide.properties['openslide.bounds-x']),
-                 int(slide.properties['openslide.bounds-y'])]
-    lowerright = [int(int(slide.properties['openslide.bounds-width']) / 16),
-                  int(int(slide.properties['openslide.bounds-height']) / 16)]
-    x = int(slide.properties['openslide.bounds-width']) - int(slide.properties['openslide.bounds-x'])
-    y = int(slide.properties['openslide.bounds-height']) - int(slide.properties['openslide.bounds-y'])
-    outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
-
-    return outimg, x, y
-
-
-# Reconstruct RGB images from binary images
-def cvs_to_img(cvss):
-    canvas_out = cvss*255
-    canvas_out_RGB = Image.fromarray(canvas_out.astype('uint8'))
-    return canvas_out_RGB
 
 
 # Threshold images
@@ -55,7 +35,7 @@ def threshold(img):
 
 
 # Main process method for multi-processing
-def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
+def main_(HE_File, HE_ID, IHC_File, IHC_ID):
     PID = HE_ID.split('-')[0]
     HEID = HE_ID.split('-')[1]
     try:
@@ -97,5 +77,5 @@ if __name__ == '__main__':
                                                                        row['H&E_File'], row['IHC_File']))
 
     # process images with multiprocessing
-    pool.starmap(main_process, tasks)
+    pool.starmap(main_, tasks)
 
