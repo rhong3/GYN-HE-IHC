@@ -1,5 +1,4 @@
 # IHC and HE alignment
-import openslide
 from openslide import OpenSlide
 import numpy as np
 from PIL import Image
