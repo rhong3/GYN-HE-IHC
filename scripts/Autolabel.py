@@ -14,6 +14,15 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def statts(maskk):
+    regions = []
+    for i in range(0, int(maskk.shape[0]-150), 150):
+        for j in range(0, int(maskk.shape[1]-150), 150):
+            regions.append(round(np.sum(maskk[i:i+150, j:j+150, 0])/22500, 5))
+    regions = np.array(regions)
+    print(np.quantile(regions, 0.25), np.quantile(regions, 0.5), np.quantile(regions, 0.75))
+
+
 # Threshold images
 def threshold(img):
     img = np.array(img)[:, :, :3]
@@ -30,6 +39,7 @@ def threshold(img):
     mask[:, :, 2] = maskc
 
     mask = (-(mask-1))
+    statts(mask)
 
     return mask
 
@@ -58,6 +68,7 @@ def main_(HE_File, HE_ID, IHC_File, IHC_ID):
         pass
 
     itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
+    print(IHC_ID)
     bitnl = threshold(itnl)
     cvs_to_img(bitnl).save('../autolabel/{}/{}/{}/ihc-b.png'.format(PID, HEID, IHC_ID))
 
