@@ -35,12 +35,40 @@ def threshold(img):
     return mask
 
 
+def reconstruct(imga, imgb, coor):
+    if coor[0] == 1:
+        imgb = np.transpose(imgb, (1, 0, 2))
+    imgb = rotate(imgb, coor[1]*coor[5])
+    canvasa = []
+    for i in range(3):
+        canvasa.append(np.pad(imga[:, :, i], coor[4], mode=pad_with).astype('uint8'))
+    canvasa = np.stack(canvasa, axis=2)
+    canvasb = np.zeros(canvasa.shape)
+    canvasb[coor[2]:int(coor[2]+imgb.shape[0]), coor[3]:int(coor[3]+imgb.shape[1]), :] = imgb
+    canvasb = canvasb[coor[4]:int(coor[4]+imga.shape[0]), coor[4]:int(coor[4]+imga.shape[1]), :]
+    outimg = Image.fromarray(canvasb.astype('uint8'), 'RGB')
+
+    return outimg, canvasb.astype('uint8')
+
+
+# Find if each tile is positive
+def tile_test(maskk, tsize, stepsize, th=0.1):
+    outlist = []
+    for i in range(0, int(maskk.shape[0]-tsize), stepsize):
+        for j in range(0, int(maskk.shape[1]-tsize), stepsize):
+            pos_rate = round(np.sum(maskk[i:i+tsize, j:j+tsize, 0])/(tsize**2), 5)
+            outlist.append([i, j, pos_rate, int(pos_rate > th)])
+
+    return outlist
+
+
 # Main process method for multi-processing
-def main_(HE_File, HE_ID, IHC_File, IHC_ID):
+def main_p(HE_File, HE_ID, IHC_File, IHC_ID, coord):
     PID = HE_ID.split('-')[0]
     HEID = HE_ID.split('-')[1]
     try:
-        itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File))
+        tnl, _, _ = read_valid('../images/NYU/{}'.format(HE_File))
+        itnl, _, _ = read_valid('../images/NYU/{}'.format(IHC_File))
     except Exception as e:
         print('ERROR IN READING IMAGE {}'.format(IHC_ID))
         print(e)
@@ -59,13 +87,13 @@ def main_(HE_File, HE_ID, IHC_File, IHC_ID):
         pass
 
     itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
-    print(IHC_ID)
-    bitnl= threshold(itnl)
+    bitnl = threshold(itnl)
     cvs_to_img(bitnl).save('../autolabel/{}/{}/{}/ihc-b.png'.format(PID, HEID, IHC_ID))
+    rotimg, rotmask = reconstruct(tnl, bitnl, coord)
 
 
 if __name__ == '__main__':
-    ref = pd.read_csv('../NYU/align.csv', header=0)
+    ref = pd.read_csv('../align/final_summary.csv', header=0)
     # create multiporcessing pool
     print(mp.cpu_count())
     pool = mp.Pool(processes=mp.cpu_count())
@@ -79,5 +107,5 @@ if __name__ == '__main__':
                                                                        row['H&E_File'], row['IHC_File']))
 
     # process images with multiprocessing
-    pool.starmap(main_, tasks)
+    pool.starmap(main_p, tasks)
 
