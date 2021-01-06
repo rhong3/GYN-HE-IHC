@@ -63,9 +63,7 @@ def tile_test(maskk, tsize, stepsize, th=0.1):
 
 
 # Main process method for multi-processing
-def main_p(HE_File, HE_ID, IHC_File, IHC_ID, coord):
-    PID = HE_ID.split('-')[0]
-    HEID = HE_ID.split('-')[1]
+def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
     try:
         tnl, _, _ = read_valid('../images/NYU/{}'.format(HE_File))
         itnl, _, _ = read_valid('../images/NYU/{}'.format(IHC_File))
@@ -89,7 +87,11 @@ def main_p(HE_File, HE_ID, IHC_File, IHC_ID, coord):
     itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
     bitnl = threshold(itnl)
     cvs_to_img(bitnl).save('../autolabel/{}/{}/{}/ihc-b.png'.format(PID, HEID, IHC_ID))
-    rotimg, rotmask = reconstruct(tnl, bitnl, coord)
+    alimg, almask = reconstruct(tnl, bitnl, args)
+    alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
+    labels = tile_test(almask, 150, 125)
+    labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'ratio', 'label'])
+    labels_pd.to_csv('../autolabel/{}/{}/{}/ratio.csv'.format(PID, HEID, IHC_ID), index=False)
 
 
 if __name__ == '__main__':
@@ -101,7 +103,9 @@ if __name__ == '__main__':
     for idx, row in ref.iterrows():
         if os.path.exists('../images/NYU/{}'.format(row['H&E_File'])) \
                 and os.path.exists('../images/NYU/{}'.format(row['IHC_File'])):
-            tasks.append(tuple((row['H&E_File'], row['H&E_ID'], row['IHC_File'], row['IHC_ID'])))
+            tasks.append(tuple((row['H&E_File'], row['Patient_ID'], row['H&E_ID'], row['IHC_File'], row['IHC_ID'],
+                                row['transpose'], row['rotation'], row['istart'], row['jstart'], row['padding'],
+                                row['angle'], row['step_decay'])))
         else:
             print('{} and {} paired files not found: {} and {}'.format(row['H&E_ID'], row['IHC_ID'],
                                                                        row['H&E_File'], row['IHC_File']))

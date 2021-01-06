@@ -17,6 +17,7 @@ def read_valid(pathtosld):
     slide = OpenSlide(pathtosld)
     upperleft = [int(slide.properties['openslide.bounds-x']),
                  int(slide.properties['openslide.bounds-y'])]
+    print(upperleft)
     lowerright = [int(int(slide.properties['openslide.bounds-width']) / 16),
                   int(int(slide.properties['openslide.bounds-height']) / 16)]
     x = int(slide.properties['openslide.bounds-width']) - int(slide.properties['openslide.bounds-x'])
