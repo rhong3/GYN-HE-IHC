@@ -90,6 +90,7 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
     alimg, almask = reconstruct(tnl, itnl, args)
     alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
     almask = threshold(almask)
+    cvs_to_img(almask).save('../autolabel/{}/{}/{}/ihc-align-b.png'.format(PID, HEID, IHC_ID))
     labels = tile_test(almask, 150, 125)
     labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'ratio', 'label'])
     labels_pd.to_csv('../autolabel/{}/{}/{}/ratio.csv'.format(PID, HEID, IHC_ID), index=False)
