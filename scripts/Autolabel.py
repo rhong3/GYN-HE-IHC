@@ -36,6 +36,8 @@ def threshold(img):
 
 
 def reconstruct(imga, imgb, coor):
+    imga = np.array(imga)[:, :, :3]
+    imgb = np.array(imgb)[:, :, :3]
     if coor[0] == 1:
         imgb = np.transpose(imgb, (1, 0, 2))
     imgb = rotate(imgb, coor[1]*coor[5])
@@ -48,7 +50,7 @@ def reconstruct(imga, imgb, coor):
     canvasb = canvasb[coor[4]:int(coor[4]+imga.shape[0]), coor[4]:int(coor[4]+imga.shape[1]), :]
     outimg = Image.fromarray(canvasb.astype('uint8'), 'RGB')
 
-    return outimg, canvasb.astype('uint8')
+    return outimg, canvasb
 
 
 # Find if each tile is positive
@@ -85,10 +87,9 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
         pass
 
     itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
-    bitnl = threshold(itnl)
-    cvs_to_img(bitnl).save('../autolabel/{}/{}/{}/ihc-b.png'.format(PID, HEID, IHC_ID))
-    alimg, almask = reconstruct(tnl, bitnl, args)
+    alimg, almask = reconstruct(tnl, itnl, args)
     alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
+    almask = threshold(almask)
     labels = tile_test(almask, 150, 125)
     labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'ratio', 'label'])
     labels_pd.to_csv('../autolabel/{}/{}/{}/ratio.csv'.format(PID, HEID, IHC_ID), index=False)
