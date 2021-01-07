@@ -90,7 +90,6 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
         pass
 
     alimg = reconstruct(tnl, itnl, args)
-    alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
     almask = threshold(alimg)
     cvs_to_img(almask).save('../autolabel/{}/{}/{}/ihc-align-b.png'.format(PID, HEID, IHC_ID))
     labels = tile_test(almask, 2392, 2000, start_coor)
@@ -102,7 +101,7 @@ if __name__ == '__main__':
     ref = pd.read_csv('../align/final_summary.csv', header=0)
     # create multiporcessing pool
     print(mp.cpu_count())
-    pool = mp.Pool(processes=mp.cpu_count())
+    pool = mp.Pool(processes=int(mp.cpu_count()/4))
     tasks = []
     for idx, row in ref.iterrows():
         if os.path.exists('../images/NYU/{}'.format(row['H&E_File'])) \
