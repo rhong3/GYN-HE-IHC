@@ -61,7 +61,7 @@ def tile_test(maskk, tsize, stepsize, rounds, start_coord, thup=0.9, thlr=0.1):
     for i in range(x_start, int(maskk.shape[0]-tsize), stepsize):
         for j in range(y_start, int(maskk.shape[1]-tsize), stepsize):
             pos_rate = round(np.sum(maskk[i:i+tsize, j:j+tsize, 0])/(tsize**2), 5)
-            outlist.append([i, j, round(i*16+start_coord[0], rounds), round(j*16+start_coord[1], rounds),
+            outlist.append([i, j, round(i*16+start_coord[0]/rounds)*rounds, round(j*16+start_coord[1]/rounds)*rounds,
                             pos_rate, int(thlr < pos_rate < thup)])
 
     return outlist
@@ -94,7 +94,7 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
     alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
     almask = threshold(alimg)
     cvs_to_img(almask).save('../autolabel/{}/{}/{}/ihc-align-b.png'.format(PID, HEID, IHC_ID))
-    tilelist = [(150, 125, -3, 3), (75, 63, -3, 2), (38, 31, -2, 1)]
+    tilelist = [(150, 125, 2000, 3), (75, 63, 1000, 2), (38, 31, 500, 1)]
     for m in tilelist:
         labels = tile_test(almask, m[0], m[1], m[2], start_coor)
         labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'abs_x', 'abs_y', 'ratio', 'label'])
