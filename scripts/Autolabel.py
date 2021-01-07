@@ -49,13 +49,15 @@ def reconstruct(imga, imgb, coor):
     canvasb[coor[2]:int(coor[2]+imgb.shape[0]), coor[3]:int(coor[3]+imgb.shape[1]), :] = imgb
     canvasb = canvasb[coor[4]:int(coor[4]+imga.shape[0]), coor[4]:int(coor[4]+imga.shape[1]), :]
     outimg = Image.fromarray(canvasb.astype('uint8'), 'RGB')
-    outimg = outimg.resize((outimg.size[0]*16, outimg.size[1]*16))
 
     return outimg
 
 
 # Find if each tile is positive
 def tile_test(maskk, tsize, stepsize, start_coord, thup=0.9, thlr=0.1):
+    maskk = cvs_to_img(maskk)
+    maskk = maskk.resize((maskk.size[0]*16, maskk.size[1]*16))
+    maskk = np.array(maskk)[:, :, :3]
     x_start = int((2000-start_coord[0] % 2000))
     y_start = int((2000-start_coord[1] % 2000))
     outlist = []
@@ -90,6 +92,7 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
         pass
 
     alimg = reconstruct(tnl, itnl, args)
+    alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
     almask = threshold(alimg)
     cvs_to_img(almask).save('../autolabel/{}/{}/{}/ihc-align-b.png'.format(PID, HEID, IHC_ID))
     labels = tile_test(almask, 2392, 2000, start_coor)
@@ -101,7 +104,7 @@ if __name__ == '__main__':
     ref = pd.read_csv('../align/final_summary.csv', header=0)
     # create multiporcessing pool
     print(mp.cpu_count())
-    pool = mp.Pool(processes=int(mp.cpu_count()/4))
+    pool = mp.Pool(processes=mp.cpu_count())
     tasks = []
     for idx, row in ref.iterrows():
         if os.path.exists('../images/NYU/{}'.format(row['H&E_File'])) \
