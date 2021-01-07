@@ -89,13 +89,12 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
     except FileExistsError:
         pass
 
-    itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
     alimg = reconstruct(tnl, itnl, args)
     alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
     almask = threshold(alimg)
     cvs_to_img(almask).save('../autolabel/{}/{}/{}/ihc-align-b.png'.format(PID, HEID, IHC_ID))
-    labels = tile_test(almask, 150, 125, start_coor)
-    labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'ratio', 'label'])
+    labels = tile_test(almask, 2392, 2000, start_coor)
+    labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'abs_x', 'abs_y', 'ratio', 'label'])
     labels_pd.to_csv('../autolabel/{}/{}/{}/ratio.csv'.format(PID, HEID, IHC_ID), index=False)
 
 
