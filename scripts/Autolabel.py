@@ -61,8 +61,8 @@ def tile_test(maskk, tsize, stepsize, rounds, start_coord, thup=0.9, thlr=0.1):
     for i in range(x_start, int(maskk.shape[0]-tsize), stepsize):
         for j in range(y_start, int(maskk.shape[1]-tsize), stepsize):
             pos_rate = round(np.sum(maskk[i:i+tsize, j:j+tsize, 0])/(tsize**2), 5)
-            outlist.append([i, j, round(i*16+start_coord[0]/rounds)*rounds, round(j*16+start_coord[1]/rounds)*rounds,
-                            pos_rate, int(thlr < pos_rate < thup)])
+            outlist.append([i, j, round((i*16+start_coord[0])/rounds)*rounds,
+                            round((j*16+start_coord[1])/rounds)*rounds, pos_rate, int(thlr < pos_rate < thup)])
 
     return outlist
 
