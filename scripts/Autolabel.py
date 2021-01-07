@@ -55,16 +55,14 @@ def reconstruct(imga, imgb, coor):
 
 # Find if each tile is positive
 def tile_test(maskk, tsize, stepsize, start_coord, thup=0.9, thlr=0.1):
-    maskk = cvs_to_img(maskk)
-    maskk = maskk.resize((maskk.size[0]*16, maskk.size[1]*16))
-    maskk = np.array(maskk)[:, :, :3]
-    x_start = int((2000-start_coord[0] % 2000))
-    y_start = int((2000-start_coord[1] % 2000))
+
+    x_start = int((2000-start_coord[0] % 2000)/16)
+    y_start = int((2000-start_coord[1] % 2000)/16)
     outlist = []
     for i in range(x_start, int(maskk.shape[0]-tsize), stepsize):
         for j in range(y_start, int(maskk.shape[1]-tsize), stepsize):
             pos_rate = round(np.sum(maskk[i:i+tsize, j:j+tsize, 0])/(tsize**2), 5)
-            outlist.append([i, j, int(i+start_coord[0]), int(i+start_coord[1]), pos_rate, int(thlr < pos_rate < thup)])
+            outlist.append([i, j, int(i*16+start_coord[0]), int(j*16+start_coord[1]), pos_rate, int(thlr < pos_rate < thup)])
 
     return outlist
 
@@ -91,11 +89,12 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
     except FileExistsError:
         pass
 
+    itnl.save('../autolabel/{}/{}/{}/ihc.jpg'.format(PID, HEID, IHC_ID))
     alimg = reconstruct(tnl, itnl, args)
     alimg.save('../autolabel/{}/{}/{}/ihc-align.png'.format(PID, HEID, IHC_ID))
     almask = threshold(alimg)
     cvs_to_img(almask).save('../autolabel/{}/{}/{}/ihc-align-b.png'.format(PID, HEID, IHC_ID))
-    labels = tile_test(almask, 2392, 2000, start_coor)
+    labels = tile_test(almask, 150, 125, start_coor)
     labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'abs_x', 'abs_y', 'ratio', 'label'])
     labels_pd.to_csv('../autolabel/{}/{}/{}/ratio.csv'.format(PID, HEID, IHC_ID), index=False)
 
