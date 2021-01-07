@@ -23,7 +23,7 @@ def read_valid(pathtosld):
     y = int(slide.properties['openslide.bounds-height']) - int(slide.properties['openslide.bounds-y'])
     outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
 
-    return outimg, x, y
+    return outimg, x, y, upperleft
 
 
 # Binarize images
@@ -192,8 +192,8 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     HEID = HE_ID.split('-')[1]
 
     try:
-        tnl, tnl_x, tnl_y = read_valid('../images/NYU/{}'.format(HE_File))
-        itnl, itnl_x, itnl_y = read_valid('../images/NYU/{}'.format(IHC_File))
+        tnl, tnl_x, tnl_y, _ = read_valid('../images/NYU/{}'.format(HE_File))
+        itnl, itnl_x, itnl_y, _ = read_valid('../images/NYU/{}'.format(IHC_File))
     except Exception as e:
         print('ERROR IN READING IMAGE {}'.format(IHC_ID))
         print(e)
