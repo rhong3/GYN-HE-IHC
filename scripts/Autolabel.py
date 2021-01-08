@@ -55,8 +55,8 @@ def reconstruct(imga, imgb, coor):
 
 # Find if each tile is positive
 def tile_test(maskk, tsize, stepsize, rounds, start_coord, thup=0.9, thlr=0.1):
-    x_start = round((2000-start_coord[0] % 2000)/16)
-    y_start = round((2000-start_coord[1] % 2000)/16)
+    x_start = round((stepsize-start_coord[0] % stepsize)/16)
+    y_start = round((stepsize-start_coord[1] % stepsize)/16)
     outlist = []
     for i in range(x_start, int(maskk.shape[0]-tsize), stepsize):
         for j in range(y_start, int(maskk.shape[1]-tsize), stepsize):
