@@ -11,7 +11,7 @@ if __name__ == '__main__':
             label_dict = pd.read_csv('../autolabel/{}/{}/{}/ratio_level{}.csv'.format(row['Patient_ID'], row['H&E_ID'],
                                                                                       row['IHC_ID'], level), header=0,
                                      usecols=['abs_x', 'abs_y', 'ratio', 'label'])
-            out_dict = pd.merge(tile_dict, label_dict, how='left', left_on=['X', 'Y'], right_on=['abs_x', 'abs_y'])
+            out_dict = pd.merge(tile_dict, label_dict, how='inner', left_on=['X', 'Y'], right_on=['abs_x', 'abs_y'])
             out_dict = out_dict[['Num',	'X_pos', 'Y_pos', 'X', 'Y', 'Loc', 'ratio', 'label']]
             out_dict.to_csv('../tiles/{}/level{}/{}_{}_label.csv'.format(row['Patient_ID'], level, row['H&E_ID'], IHC),
                             index=False)

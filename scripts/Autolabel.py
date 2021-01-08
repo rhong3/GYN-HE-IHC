@@ -55,11 +55,11 @@ def reconstruct(imga, imgb, coor):
 
 # Find if each tile is positive
 def tile_test(maskk, tsize, stepsize, rounds, start_coord, thup=0.9, thlr=0.1):
-    x_start = round((stepsize-start_coord[0] % stepsize)/16)
+    x_start = round((stepsize - start_coord[0] % stepsize) / 16)
     y_start = round((stepsize-start_coord[1] % stepsize)/16)
     outlist = []
-    for i in range(x_start, int(maskk.shape[0]-tsize), stepsize):
-        for j in range(y_start, int(maskk.shape[1]-tsize), stepsize):
+    for i in range(x_start, int(maskk.shape[1]-tsize), stepsize):
+        for j in range(y_start, int(maskk.shape[0]-tsize), stepsize):
             pos_rate = round(np.sum(maskk[i:i+tsize, j:j+tsize, 0])/(tsize**2), 5)
             outlist.append([i, j, round((i*16+start_coord[0])/rounds)*rounds,
                             round((j*16+start_coord[1])/rounds)*rounds, pos_rate, int(thlr < pos_rate < thup)])
@@ -98,6 +98,7 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
     for m in tilelist:
         labels = tile_test(almask, m[0], m[1], m[2], start_coor)
         labels_pd = pd.DataFrame(labels, columns=['x', 'y', 'abs_x', 'abs_y', 'ratio', 'label'])
+        labels_pd = labels_pd.drop_duplicates(['abs_x', 'abs_y'])
         labels_pd.to_csv('../autolabel/{}/{}/{}/ratio_level{}.csv'.format(PID, HEID, IHC_ID, m[3]), index=False)
 
 
