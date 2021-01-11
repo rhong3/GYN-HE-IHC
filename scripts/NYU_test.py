@@ -11,7 +11,6 @@ import tensorflow as tf
 import pandas as pd
 import cnn5
 import data_input_fusion
-import Sample_prep2
 import cnn4
 import data_input2
 import Sample_prep
@@ -107,9 +106,10 @@ if __name__ == "__main__":
             datapd = pd.DataFrame(big_images, columns=['slide', 'label', 'path', 'age', 'BMI'])
             datapd = datapd.dropna()
 
+
             test_tiles = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
             for idx, row in datapd.iterrows():
-                tile_ids = Sample_prep2.paired_tile_ids_in(row['slide'], row['label'], row['path'], row['age'], row['BMI'])
+                tile_ids = Sample_prep.paired_tile_ids_in(row['slide'], row['label'], row['path'], row['age'], row['BMI'])
                 test_tiles = pd.concat([test_tiles, tile_ids])
             test_tiles.to_csv(data_dir + '/te_sample.csv', header=True, index=False)
             tes = test_tiles
@@ -159,12 +159,34 @@ if __name__ == "__main__":
                 # ref = ref.loc[ref['histology_Endometrioid'] == 1]
                 # ## special version
 
-                negimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd)] == 0]['name'].tolist(), allimg)
-                posimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd)] == 1]['name'].tolist(), allimg)
+                negimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd)] == 0]['name'].tolist(),
+                                                  allimg)
+                posimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd)] == 1]['name'].tolist(),
+                                                  allimg)
                 for i in negimg:
                     big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 0])
                 for i in posimg:
                     big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 1])
+            elif opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53']:
+                ref = ref.loc[ref[opt.pdmd] == 1]
+                negimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd.split('_')[0])] == 0]['name'].tolist(),
+                                                  allimg)
+                posimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd.split('_')[0])] == 1]['name'].tolist(),
+                                                  allimg)
+                for i in negimg:
+                    big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 0])
+                for i in posimg:
+                    big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 1])
+            elif opt.pdmd in ['TP53_P53']:
+                ref = ref.loc[ref[opt.pdmd] == 1]
+                negimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd.split('_')[0]] == 0]['name'].tolist(),
+                                                  allimg)
+                posimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd.split('_')[0]] == 1]['name'].tolist(),
+                                                  allimg)
+                for idx, row in ref.iterrows():
+                    big_images.append(
+                        [row['name'], int(row[opt.pdmd.split('_')[0]]),
+                         img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
             else:
                 negimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd] == 0]['name'].tolist(), allimg)
                 posimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd] == 1]['name'].tolist(), allimg)
