@@ -91,3 +91,20 @@ def paired_tile_ids_in(slide, label, root_dir, age=None, BMI=None):
 
     return idsa
 
+
+# pair tiles of 10x, 5x, 2.5x of the same area
+def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
+    dira = os.path.isdir(root_dir + 'level1')
+    dirb = os.path.isdir(root_dir + 'level2')
+    dirc = os.path.isdir(root_dir + 'level3')
+    if dira and dirb and dirc:
+        fac = 1000
+        for level in range(1, 4):
+            filtlist = list(filter(lambda file: '{}_label.csv'.format(ihcl) in file,
+                                   os.listdir(root_dir + 'level{}'.format(str(level)))))
+
+
+
+
+
+    return None

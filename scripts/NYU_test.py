@@ -71,9 +71,11 @@ if __name__ == "__main__":
                 ref = ref.loc[ref['histology_Mixed'] == 0]
                 for idx, row in ref.iterrows():
                     if row['histology_Endometrioid'] == 1:
-                        big_images.append([row['name'], 0, img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
+                        big_images.append([row['name'], 0, img_dir + "{}/".format(str(row['name'])), row['age'],
+                                           row['BMI']])
                     if row['histology_Serous'] == 1:
-                        big_images.append([row['name'], 1, img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
+                        big_images.append([row['name'], 1, img_dir + "{}/".format(str(row['name'])), row['age'],
+                                           row['BMI']])
             elif opt.pdmd in ['Endometrioid', 'MSI', 'Serous-like', 'POLE']:
                 # # special version
                 # ref = ref.loc[ref['histology_Mixed'] == 0]
@@ -101,16 +103,23 @@ if __name__ == "__main__":
                 ref = ref.dropna(subset=[opt.pdmd])
                 for idx, row in ref.iterrows():
                     big_images.append(
-                        [row['name'], int(row[opt.pdmd]), img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
+                        [row['name'], int(row[opt.pdmd]), img_dir + "{}/".format(str(row['name'])), row['age'],
+                         row['BMI']])
 
             datapd = pd.DataFrame(big_images, columns=['slide', 'label', 'path', 'age', 'BMI'])
             datapd = datapd.dropna()
-
-
             test_tiles = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
-            for idx, row in datapd.iterrows():
-                tile_ids = Sample_prep.paired_tile_ids_in(row['slide'], row['label'], row['path'], row['age'], row['BMI'])
-                test_tiles = pd.concat([test_tiles, tile_ids])
+            if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53', 'TP53_P53']:
+                ihc = opt.pdmd.split('_')[1]
+                for idx, row in datapd.iterrows():
+                    tile_ids = Sample_prep.IHC_paired_tile_ids_in(ihc, row['slide'], row['label'], row['path'], row['age'],
+                                                                  row['BMI'])
+                    test_tiles = pd.concat([test_tiles, tile_ids])
+            else:
+                for idx, row in datapd.iterrows():
+                    tile_ids = Sample_prep.paired_tile_ids_in(row['slide'], row['label'], row['path'], row['age'],
+                                                              row['BMI'])
+                    test_tiles = pd.concat([test_tiles, tile_ids])
             test_tiles.to_csv(data_dir + '/te_sample.csv', header=True, index=False)
             tes = test_tiles
         tecc = len(tes['label'])
@@ -120,7 +129,8 @@ if __name__ == "__main__":
                            meta_dir=METAGRAPH_DIR, model=opt.mode)
         print("Loaded! Ready for test!")
         if tecc >= bs:
-            datasets = data_input_fusion.DataSet(bs, tecc, ep=1, cls=2, mode='test', filename=data_dir + '/test.tfrecords')
+            datasets = data_input_fusion.DataSet(bs, tecc, ep=1, cls=2, mode='test',
+                                                 filename=data_dir + '/test.tfrecords')
             m.inference(datasets, opt.dirr, testset=tes, pmd=opt.pdmd)
         else:
             print("Not enough testing images!")
