@@ -86,6 +86,18 @@ if __name__ == "__main__":
                     big_images.append(
                         [row['name'], int(row['subtype_{}'.format(opt.pdmd)]), img_dir + "{}/".format(str(row['name'])),
                          row['age'], row['BMI']])
+            elif opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53']:
+                ref = ref.loc[ref[opt.pdmd] == 1]
+                for idx, row in ref.iterrows():
+                    big_images.append(
+                        [row['name'], int(row['subtype_{}'.format(opt.pdmd.split('_')[0])]),
+                         img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
+            elif opt.pdmd in ['TP53_P53']:
+                ref = ref.loc[ref[opt.pdmd] == 1]
+                for idx, row in ref.iterrows():
+                    big_images.append(
+                        [row['name'], int(row[opt.pdmd.split('_')[0]]),
+                         img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
             else:
                 ref = ref.dropna(subset=[opt.pdmd])
                 for idx, row in ref.iterrows():
