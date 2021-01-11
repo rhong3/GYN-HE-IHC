@@ -99,10 +99,10 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
     dirc = os.path.isdir(root_dir + 'level3')
     if dira and dirb and dirc:
         fac = 1000
-        for level in range(1, 4):
-            filtlist = list(filter(lambda file: '{}_label.csv'.format(ihcl) in file,
-                                   os.listdir(root_dir + 'level{}'.format(str(level)))))
-
+        for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
+                la = pd.read_csv(root_dir + 'level1/' + ff, header=0)
+                lb = pd.read_csv(root_dir + 'level2/' + ff, header=0)
+                lc = pd.read_csv(root_dir + 'level3/' + ff, header=0)
 
 
 
