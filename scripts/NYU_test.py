@@ -206,12 +206,19 @@ if __name__ == "__main__":
                     big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 1])
 
             datapd = pd.DataFrame(big_images, columns=['slide', 'level', 'path', 'label'])
+            if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53', 'TP53_P53']:
+                test_tiles = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
+                ihc = opt.pdmd.split('_')[1]
+                for idx, row in datapd.iterrows():
+                    test_tiles_list = Sample_prep.ihc_tile_ids_in(ihc, row['slide'], row['level'], row['path'], row['label'])
+                    test_tiles = pd.concat([test_tiles, test_tiles_list])
 
-            test_tiles_list = []
-            for idx, row in datapd.iterrows():
-                tile_ids = Sample_prep.tile_ids_in(row['slide'], row['level'], row['path'], row['label'])
-                test_tiles_list.extend(tile_ids)
-            test_tiles = pd.DataFrame(test_tiles_list, columns=['slide', 'level', 'path', 'label'])
+            else:
+                test_tiles_list = []
+                for idx, row in datapd.iterrows():
+                    tile_ids = Sample_prep.tile_ids_in(row['slide'], row['level'], row['path'], row['label'])
+                    test_tiles_list.extend(tile_ids)
+                test_tiles = pd.DataFrame(test_tiles_list, columns=['slide', 'level', 'path', 'label'])
             test_tiles.to_csv(data_dir + '/te_sample.csv', header=True, index=False)
             tes = test_tiles
         tecc = len(tes['label'])

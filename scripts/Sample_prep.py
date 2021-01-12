@@ -43,6 +43,26 @@ def tile_ids_in(slide, level, root_dir, label):
     return ids
 
 
+def ihc_tile_ids_in(ihcl, slide, level, root_dir, label):
+    if os.path.isdir(root_dir + 'level{}'.format(level)):
+        prpd = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
+        for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir
+                                                                                           + 'level{}'.format(level)))):
+            la = pd.read_csv(root_dir + 'level1/' + ff, header=0, usecols=['Loc', 'label'])
+            la['level'] = 1
+            la = la.rename(index=str, columns={"Loc": "path"})
+            la['slide'] = slide
+            if label == 0:
+                la['label'] = 0
+            ll = la.dropna()
+            prpd = prpd.append(ll)
+        prpd = sku.shuffle(prpd)
+    else:
+        prpd = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
+
+    return prpd
+
+
 # pair tiles of 10x, 5x, 2.5x of the same area
 def paired_tile_ids_in(slide, label, root_dir, age=None, BMI=None):
     dira = os.path.isdir(root_dir + 'level1')
@@ -137,3 +157,4 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
         prpd = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
 
     return prpd
+
