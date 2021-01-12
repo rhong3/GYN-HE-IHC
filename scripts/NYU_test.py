@@ -131,7 +131,7 @@ if __name__ == "__main__":
         if tecc >= bs:
             datasets = data_input_fusion.DataSet(bs, tecc, ep=1, cls=2, mode='test',
                                                  filename=data_dir + '/test.tfrecords')
-            m.inference(datasets, opt.dirr, testset=tes, pmd=opt.pdmd)
+            m.inference(datasets, opt.dirr, testset=tes, pmd=opt.pdmd.split('_')[0])
         else:
             print("Not enough testing images!")
 
@@ -229,6 +229,6 @@ if __name__ == "__main__":
         print("Loaded! Ready for test!")
         if tecc >= bs:
             datasets = data_input2.DataSet(bs, tecc, ep=1, cls=2, mode='test', filename=data_dir + '/test.tfrecords')
-            m.inference(datasets, opt.dirr, testset=tes, pmd=opt.pdmd, bs=bs)
+            m.inference(datasets, opt.dirr, testset=tes, pmd=opt.pdmd.split('_')[0], bs=bs)
         else:
             print("Not enough testing images!")
