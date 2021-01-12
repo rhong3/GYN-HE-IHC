@@ -52,10 +52,9 @@ def ihc_tile_ids_in(ihcl, slide, level, root_dir, label):
             la['level'] = 1
             la = la.rename(index=str, columns={"Loc": "path"})
             la['slide'] = slide
-            if label == 0:
-                la['label'] = 0
-            ll = la.dropna()
-            prpd = prpd.append(ll)
+            la = la[la['label'] == label]
+            la = la.dropna()
+            prpd = prpd.append(la)
         prpd = sku.shuffle(prpd)
     else:
         prpd = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
@@ -143,8 +142,10 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
                 ll = pd.merge(ll, lc, on=['X', 'Y'], how='left', validate="many_to_many")
                 if label == 0:
                     ll['label'] = ll[['L1label', 'L2label', 'L3label']].min(axis=1)
+                    ll = ll[ll['label'] == 0]
                 else:
                     ll['label'] = ll[['L1label', 'L2label', 'L3label']].max(axis=1)
+                    ll = ll[ll['label'] == 1]
                 ll = ll.drop(columns=['X', 'Y', 'L1label', 'L2label', 'L3label'])
                 ll['slide'] = slide
                 ll = ll.dropna()

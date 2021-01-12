@@ -212,7 +212,6 @@ if __name__ == "__main__":
                 for idx, row in datapd.iterrows():
                     test_tiles_list = Sample_prep.ihc_tile_ids_in(ihc, row['slide'], row['level'], row['path'], row['label'])
                     test_tiles = pd.concat([test_tiles, test_tiles_list])
-
             else:
                 test_tiles_list = []
                 for idx, row in datapd.iterrows():
