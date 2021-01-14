@@ -29,3 +29,4 @@ if __name__ == '__main__':
                 pass
     alignpd = pd.DataFrame(aligneval, columns=['H&E_ID', 'IHC_ID', 'Align_score'])
     alignpd.to_csv('../align/align_eval.csv', header=True, index=False)
+
