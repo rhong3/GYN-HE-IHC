@@ -223,7 +223,7 @@ def main_process(HE_File, HE_ID, IHC_File, IHC_ID):
     bitnl = binarize(itnl)
     cvs_to_img(bitnl).save('../align/{}/{}/{}/ihc-b.jpg'.format(PID, HEID, IHC_ID))
 
-    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 1, 40)
+    coor, gmax, cvs, he_cvs = optimize(btnl, bitnl, IHC_ID, 2, 20)
 
     ovl = overlap(cvs, he_cvs, coor)
     cvs_to_img(ovl).save('../align/{}/{}/{}/overlap.jpg'.format(PID, HEID, IHC_ID))
@@ -248,7 +248,7 @@ if __name__ == '__main__':
         os.mkdir("../align")
     except FileExistsError:
         pass
-    ref = pd.read_csv('../NYU/align_secondary.csv', header=0)
+    ref = pd.read_csv('../NYU/align.csv', header=0)
 
     # create multiporcessing pool
     print(mp.cpu_count())
@@ -272,5 +272,5 @@ if __name__ == '__main__':
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
                                                'istart', 'jstart', 'padding', 'angle', 'step_decay'])
-    alignedpd.to_csv('../align/final_summary_secondary.csv', header=True, index=False)
+    alignedpd.to_csv('../align/final_summary.csv', header=True, index=False)
 
