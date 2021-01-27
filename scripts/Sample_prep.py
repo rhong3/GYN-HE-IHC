@@ -48,8 +48,8 @@ def ihc_tile_ids_in(ihcl, slide, level, root_dir, label):
         prpd = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
         for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir
                                                                                            + 'level{}'.format(level)))):
-            la = pd.read_csv(root_dir + 'level1/' + ff, header=0, usecols=['Loc', 'label'])
-            la['level'] = 1
+            la = pd.read_csv(root_dir + 'level{}/'.format(level) + ff, header=0, usecols=['Loc', 'label'])
+            la['level'] = level
             la = la.rename(index=str, columns={"Loc": "path"})
             la['slide'] = slide
             la = la[la['label'] == label]
@@ -120,6 +120,7 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
         fac = 1000
         prpd = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
         for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
+            try:
                 la = pd.read_csv(root_dir + 'level1/' + ff, header=0, usecols=['X', 'Y', 'Loc', 'label'])
                 la['level'] = 1
                 la['X'] = int(la['X'] / fac)
@@ -152,6 +153,9 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
                 ll['age'] = age
                 ll['BMI'] = BMI
                 prpd = prpd.append(ll)
+            except Exception as e:
+                print(e)
+                pass
         prpd = sku.shuffle(prpd)
 
     else:
