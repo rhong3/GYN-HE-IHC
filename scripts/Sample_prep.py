@@ -46,8 +46,7 @@ def tile_ids_in(slide, level, root_dir, label):
 def ihc_tile_ids_in(ihcl, slide, level, root_dir, label):
     if os.path.isdir(root_dir + 'level{}'.format(level)):
         prpd = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
-        for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir
-                                                                                           + 'level{}'.format(level)))):
+        for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir))):
             la = pd.read_csv(root_dir + 'level{}/'.format(level) + ff, header=0, usecols=['Loc', 'label'])
             la['level'] = level
             la = la.rename(index=str, columns={"Loc": "path"})
