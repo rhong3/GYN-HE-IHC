@@ -33,7 +33,7 @@ def tile_ids_in(slide, level, root_dir, label):
     ids = []
     try:
         for id in os.listdir(root_dir):
-            if '.png' in id:
+            if '.png' in id.split("_")[-1] and len(id.split("_")[-1]) < 7:
                 ids.append([slide, level, root_dir+'/'+id, label])
             else:
                 print('Skipping ID:', id)
@@ -80,7 +80,7 @@ def paired_tile_ids_in(slide, label, root_dir, age=None, BMI=None):
         for level in range(1, 4):
             dirr = root_dir + 'level{}'.format(str(level))
             for id in os.listdir(dirr):
-                if '.png' in id:
+                if '.png' in id.split("_")[-1] and len(id.split("_")[-1]) < 7:
                     x = int(float(id.split('x-', 1)[1].split('-', 1)[0]) / fac)
                     y = int(float(re.split('_', id.split('y-', 1)[1])[0]) / fac)
                     try:
@@ -117,12 +117,12 @@ def paired_tile_ids_in(slide, label, root_dir, age=None, BMI=None):
 
 # pair tiles of 10x, 5x, 2.5x of the same area for IHC-labeled tiles
 def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
-    if list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
-        print('{}/{} mapping exists.'.format(slide, ihcl))
-        dira = os.path.isdir(root_dir + 'level1')
-        dirb = os.path.isdir(root_dir + 'level2')
-        dirc = os.path.isdir(root_dir + 'level3')
-        if dira and dirb and dirc:
+    print('{}/{} mapping exists.'.format(slide, ihcl))
+    dira = os.path.isdir(root_dir + 'level1')
+    dirb = os.path.isdir(root_dir + 'level2')
+    dirc = os.path.isdir(root_dir + 'level3')
+    if dira and dirb and dirc:
+        if list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
             fac = 1000
             prpd = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
             for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
@@ -163,12 +163,11 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
                     print(e)
                     pass
             prpd = sku.shuffle(prpd)
-
         else:
-            prpd = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
+            print('{}/{} mapping does not exist.'.format(slide, ihcl))
+            prpd = paired_tile_ids_in(slide, label, root_dir, age=age, BMI=BMI)
     else:
-        print('{}/{} mapping does not exist.'.format(slide, ihcl))
-        prpd = paired_tile_ids_in(slide, label, root_dir, age=age, BMI=BMI)
+        prpd = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
 
     return prpd
 
