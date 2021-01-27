@@ -107,7 +107,8 @@ if __name__ == "__main__":
                          row['BMI']])
 
             datapd = pd.DataFrame(big_images, columns=['slide', 'label', 'path', 'age', 'BMI'])
-            datapd = datapd.dropna()
+            datapd = datapd.dropna(subset=['slide', 'label', 'path'])
+
             test_tiles = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
             if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53', 'TP53_P53']:
                 ihc = opt.pdmd.split('_')[1]
