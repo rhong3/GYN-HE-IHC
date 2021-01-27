@@ -14,7 +14,7 @@ if __name__ == '__main__':
             outdf['Num'] = range(len(ls))
             outdf['X'] = [itmx.split("x-")[1].split("-y")[0] for itmx in ls]
             outdf['Y'] = [itmy.split("y-")[1].split("_{}.png".format(row['Slide_ID']))[0] for itmy in ls]
-            outdf['X_pos'] = outdf['X'] / (500 * (2 ** (i - 1)))
-            outdf['Y_pos'] = outdf['Y'] / (500 * (2 ** (i - 1)))
+            outdf['X_pos'] = pd.to_numeric(outdf['X']) / (500 * (2 ** (i - 1)))
+            outdf['Y_pos'] = pd.to_numeric(outdf['Y']) / (500 * (2 ** (i - 1)))
             outdf.to_csv("../tiles/{}/level{}/{}_dict.csv".format(row['Patient_ID'], i, row['Slide_ID']), index=False)
 
