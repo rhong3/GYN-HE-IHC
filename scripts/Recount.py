@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 
+
 if __name__ == '__main__':
     ref = pd.read_csv('../NYU/batch_redo.csv', header=0)
     for idx, row in ref.iterrows():
