@@ -117,30 +117,36 @@ def paired_tile_ids_in(slide, label, root_dir, age=None, BMI=None):
 
 # pair tiles of 10x, 5x, 2.5x of the same area for IHC-labeled tiles
 def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
-    print('{}/{} mapping exists.'.format(slide, ihcl))
     dira = os.path.isdir(root_dir + 'level1')
     dirb = os.path.isdir(root_dir + 'level2')
     dirc = os.path.isdir(root_dir + 'level3')
     if dira and dirb and dirc:
         if list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
+            print('{}/{} mapping exists.'.format(slide, ihcl))
             fac = 1000
             prpd = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
             for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir + 'level1'))):
                 try:
                     la = pd.read_csv(root_dir + 'level1/' + ff, header=0, usecols=['X', 'Y', 'Loc', 'label'])
                     la['level'] = 1
-                    la['X'] = int(la['X'] / fac)
-                    la['Y'] = int(la['Y'] / fac)
+                    la['X'] = la['X'] / fac
+                    la['X'] = la['X'].round(0)
+                    la['Y'] = la['Y'] / fac
+                    la['Y'] = la['Y'].round(0)
                     la = la.rename(index=str, columns={"Loc": "L0path", "label": "L0label"})
                     lb = pd.read_csv(root_dir + 'level2/' + ff, header=0, usecols=['X', 'Y', 'Loc', 'label'])
                     lb['level'] = 2
-                    lb['X'] = int(lb['X'] / fac)
-                    lb['Y'] = int(lb['Y'] / fac)
+                    lb['X'] = lb['X'] / fac
+                    lb['X'] = lb['X'].round(0)
+                    lb['Y'] = lb['Y'] / fac
+                    lb['Y'] = lb['Y'].round(0)
                     lb = lb.rename(index=str, columns={"Loc": "L1path", "label": "L1label"})
                     lc = pd.read_csv(root_dir + 'level3/' + ff, header=0, usecols=['X', 'Y', 'Loc', 'label'])
                     lc['level'] = 3
-                    lc['X'] = int(lc['X'] / fac)
-                    lc['Y'] = int(lc['Y'] / fac)
+                    lc['X'] = lc['X'] / fac
+                    lc['X'] = lc['X'].round(0)
+                    lc['Y'] = lc['Y'] / fac
+                    lc['Y'] = lc['Y'].round(0)
                     lc = lc.rename(index=str, columns={"Loc": "L2path", "label": "L2label"})
 
                     ll = pd.merge(la, lb, on=['X', 'Y'], how='left', validate="many_to_many")
@@ -148,12 +154,12 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
                     ll['Y'] = ll['Y'] - (ll['Y'] % 2)
                     ll = pd.merge(ll, lc, on=['X', 'Y'], how='left', validate="many_to_many")
                     if label == 0:
-                        ll['label'] = ll[['L1label', 'L2label', 'L3label']].min(axis=1)
+                        ll['label'] = ll[['L0label', 'L1label', 'L2label']].min(axis=1)
                         ll = ll[ll['label'] == 0]
                     else:
-                        ll['label'] = ll[['L1label', 'L2label', 'L3label']].max(axis=1)
+                        ll['label'] = ll[['L0label', 'L1label', 'L2label']].max(axis=1)
                         ll = ll[ll['label'] == 1]
-                    ll = ll.drop(columns=['X', 'Y', 'L1label', 'L2label', 'L3label'])
+                    ll = ll.drop(columns=['X', 'Y', 'L0label', 'L1label', 'L2label'])
                     ll['slide'] = slide
                     ll = ll.dropna()
                     ll['age'] = age

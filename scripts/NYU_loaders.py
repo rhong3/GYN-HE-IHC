@@ -43,6 +43,7 @@ def loaderX(totlist_dir, ds):
         slist = pd.read_csv(totlist_dir + '/te_sample.csv', header=0)
     else:
         slist = pd.read_csv(totlist_dir + '/te_sample.csv', header=0)
+    slist['label'] = slist['label'].astype(int)
     imlista = slist['L0path'].values.tolist()
     imlistb = slist['L1path'].values.tolist()
     imlistc = slist['L2path'].values.tolist()
