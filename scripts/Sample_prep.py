@@ -35,8 +35,7 @@ def tile_ids_in(slide, level, root_dir, label):
         for id in os.listdir(root_dir):
             if '.png' in id.split("_")[-1] and len(id.split("_")[-1]) < 7:
                 ids.append([slide, level, root_dir+'/'+id, label])
-            else:
-                print('Skipping ID:', id)
+
     except FileNotFoundError:
         print('Ignore:', root_dir)
 
@@ -88,8 +87,6 @@ def paired_tile_ids_in(slide, label, root_dir, age=None, BMI=None):
                     except IndexError:
                         dup = np.nan
                     ids.append([slide, label, level, dirr + '/' + id, x, y, dup])
-                else:
-                    print('Skipping ID:', id)
         ids = pd.DataFrame(ids, columns=['slide', 'label', 'level', 'path', 'x', 'y', 'dup'])
         idsa = ids.loc[ids['level'] == 1]
         idsa = idsa.drop(columns=['level'])
