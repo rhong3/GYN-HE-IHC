@@ -194,10 +194,10 @@ if __name__ == "__main__":
                                                   allimg)
                 posimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd.split('_')[0]] == 1]['name'].tolist(),
                                                   allimg)
-                for idx, row in ref.iterrows():
-                    big_images.append(
-                        [row['name'], int(row[opt.pdmd.split('_')[0]]),
-                         img_dir + "{}/".format(str(row['name'])), row['age'], row['BMI']])
+                for i in negimg:
+                    big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 0])
+                for i in posimg:
+                    big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 1])
             else:
                 negimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd] == 0]['name'].tolist(), allimg)
                 posimg = Sample_prep.intersection(ref.loc[ref[opt.pdmd] == 1]['name'].tolist(), allimg)
