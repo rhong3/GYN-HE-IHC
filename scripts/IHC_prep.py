@@ -1,10 +1,11 @@
 # Prepare IHC slides for cutting
 import pandas as pd
 
-case = pd.read_excel('../NYU/Cases ready for Runyu.xlsx', header=0, usecols=['NYU_name', 'Group', 'IHC', 'Diagnosis'])
+case = pd.read_excel('../NYU/Cases ready for Runyu.xlsx', header=0, usecols=['NYU_name', 'Group', 'IHC', 'Diagnosis'],
+                     engine='openpyxl')
 case.columns = ['Patient_ID', 'subtype', 'IHC', 'diagnosis']
 
-for bat in ['1', '2', '3', '4']:
+for bat in ['4']:
     batch = pd.read_csv(str('../NYU/Samples_Runyu_Hong_Batch'+bat+'.csv'), header=0)
     batch.columns = ['Slide_ID', 'stain', 'num', 'file']
 
@@ -23,7 +24,7 @@ for bat in ['1', '2', '3', '4']:
     combined = batch.join(case.set_index('Patient_ID'), on='Patient_ID', how='left')
     combined = combined[['Patient_ID', 'Slide_ID', 'histology', 'subtype', 'FIGO', 'file']]
     combined = combined.dropna(subset=['histology', 'file'])
-    combined['file'] = combined['file'].str[:-1]
+    # combined['file'] = combined['file'].str[:-1]
     combined.to_csv(str('../NYU/IHC'+bat+'_sum.csv'), index=False)
 
 
