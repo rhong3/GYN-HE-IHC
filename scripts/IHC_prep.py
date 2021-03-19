@@ -4,7 +4,7 @@ import pandas as pd
 case = pd.read_excel('../NYU/Cases ready for Runyu.xlsx', header=0, usecols=['NYU_name', 'Group', 'IHC', 'Diagnosis'])
 case.columns = ['Patient_ID', 'subtype', 'IHC', 'diagnosis']
 
-for bat in ['1', '2', '3']:
+for bat in ['1', '2', '3', '4']:
     batch = pd.read_csv(str('../NYU/Samples_Runyu_Hong_Batch'+bat+'.csv'), header=0)
     batch.columns = ['Slide_ID', 'stain', 'num', 'file']
 

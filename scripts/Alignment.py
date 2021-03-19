@@ -30,7 +30,7 @@ def read_valid(pathtosld):
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 210).astype(np.uint8)
+    maska = (img[:, :, :3] > 200).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
