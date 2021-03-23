@@ -25,11 +25,11 @@ def read_valid(pathtosld):
         outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
     else:
         upperleft = (0, 0)
-        x = int(slide.level_dimensions[5][0])
-        y = int(slide.level_dimensions[5][1])
-        lowerright = [int(x / 16),
-                      int(y / 16)]
-        outimg = slide.read_region(upperleft, 5, lowerright).convert('RGB')
+        x = int(slide.level_dimensions[4][0])
+        y = int(slide.level_dimensions[4][1])
+        lowerright = [int(x),
+                      int(y)]
+        outimg = slide.read_region(upperleft, 4, lowerright).convert('RGB')
 
     return outimg, x, y, upperleft
 
