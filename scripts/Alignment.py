@@ -15,13 +15,21 @@ warnings.filterwarnings("ignore")
 # Read original slides, get valid size at 20X, and get low resolution image at level2
 def read_valid(pathtosld):
     slide = OpenSlide(pathtosld)
-    upperleft = [int(slide.properties['openslide.bounds-x']),
-                 int(slide.properties['openslide.bounds-y'])]
-    lowerright = [int(int(slide.properties['openslide.bounds-width']) / 16),
-                  int(int(slide.properties['openslide.bounds-height']) / 16)]
-    x = int(slide.properties['openslide.bounds-width']) - int(slide.properties['openslide.bounds-x'])
-    y = int(slide.properties['openslide.bounds-height']) - int(slide.properties['openslide.bounds-y'])
-    outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
+    if 'collection_' in pathtosld:
+        upperleft = [int(slide.properties['openslide.bounds-x']),
+                     int(slide.properties['openslide.bounds-y'])]
+        lowerright = [int(int(slide.properties['openslide.bounds-width']) / 16),
+                      int(int(slide.properties['openslide.bounds-height']) / 16)]
+        x = int(slide.properties['openslide.bounds-width']) - int(slide.properties['openslide.bounds-x'])
+        y = int(slide.properties['openslide.bounds-height']) - int(slide.properties['openslide.bounds-y'])
+        outimg = slide.read_region(upperleft, 2, lowerright).convert('RGB')
+    else:
+        upperleft = (0, 0)
+        x = int(slide.level_dimensions[5][0])
+        y = int(slide.level_dimensions[5][1])
+        lowerright = [int(x / 16),
+                      int(y / 16)]
+        outimg = slide.read_region(upperleft, 5, lowerright).convert('RGB')
 
     return outimg, x, y, upperleft
 
@@ -248,7 +256,7 @@ if __name__ == '__main__':
         os.mkdir("../align")
     except FileExistsError:
         pass
-    ref = pd.read_csv('../NYU/align.csv', header=0)
+    ref = pd.read_csv('../NYU/align_2.csv', header=0)
 
     # create multiporcessing pool
     print(mp.cpu_count())
@@ -272,5 +280,5 @@ if __name__ == '__main__':
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
                                                'istart', 'jstart', 'padding', 'angle', 'step_decay'])
-    alignedpd.to_csv('../align/final_summary.csv', header=True, index=False)
+    alignedpd.to_csv('../align/final_summary_2.csv', header=True, index=False)
 

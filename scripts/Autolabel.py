@@ -1,15 +1,12 @@
 # Gynecological cancers H&E IHC project at NYU
 # Auto-labeling
 from Alignment import *
-from openslide import OpenSlide
 import numpy as np
 from PIL import Image
-import skimage.morphology as skm
 from scipy.ndimage.interpolation import rotate
 import pandas as pd
 import os
 import multiprocessing as mp
-import csv
 import warnings
 warnings.filterwarnings("ignore")
 
