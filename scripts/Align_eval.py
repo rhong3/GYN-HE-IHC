@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 if __name__ == '__main__':
-    ref = pd.read_csv('../NYU/align.csv', header=0)
+    ref = pd.read_csv('../NYU/align_2.csv', header=0)
     aligneval = []
     for idx, row in ref.iterrows():
         PID = row['H&E_ID'].split('-')[0]
@@ -28,5 +28,5 @@ if __name__ == '__main__':
             except FileNotFoundError:
                 pass
     alignpd = pd.DataFrame(aligneval, columns=['H&E_ID', 'IHC_ID', 'Align_score'])
-    alignpd.to_csv('../align/align_eval.csv', header=True, index=False)
+    alignpd.to_csv('../align/align_eval_2.csv', header=True, index=False)
 
