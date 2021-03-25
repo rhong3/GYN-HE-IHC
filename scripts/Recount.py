@@ -4,7 +4,7 @@ import os
 
 
 if __name__ == '__main__':
-    ref = pd.read_csv('../NYU/batch_redo.csv', header=0)
+    ref = pd.read_csv('../NYU/batch_redo2.csv', header=0)
     for idx, row in ref.iterrows():
         for i in range(1, 4):
             ls = list(filter(lambda ff: "_{}.png".format(row['Slide_ID']) in ff,
