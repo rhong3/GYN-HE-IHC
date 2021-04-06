@@ -38,7 +38,7 @@ def read_valid(pathtosld):
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 200).astype(np.uint8)
+    maska = (img[:, :, :3] > 215).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
@@ -256,7 +256,7 @@ if __name__ == '__main__':
         os.mkdir("../align")
     except FileExistsError:
         pass
-    ref = pd.read_csv('../NYU/align_2.csv', header=0)
+    ref = pd.read_csv('../NYU/align_secondary.csv', header=0)
 
     # create multiporcessing pool
     print(mp.cpu_count())
@@ -280,5 +280,5 @@ if __name__ == '__main__':
     alignedpd = pd.DataFrame(aligned, columns=['Patient_ID', 'H&E_ID', 'IHC_ID', 'H&E_File', 'IHC_File',
                                                'H&E_X', 'H&E_Y', 'IHC_X', 'IHC_Y', 'transpose', 'rotation',
                                                'istart', 'jstart', 'padding', 'angle', 'step_decay'])
-    alignedpd.to_csv('../align/final_summary_2.csv', header=True, index=False)
+    alignedpd.to_csv('../align/final_summary_3.csv', header=True, index=False)
 
