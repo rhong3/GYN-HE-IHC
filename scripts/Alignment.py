@@ -38,7 +38,7 @@ def read_valid(pathtosld):
 def binarize(img):
     img = np.array(img)[:, :, :3]
     img = np.nan_to_num(img, nan=0, posinf=0, neginf=0)
-    maska = (img[:, :, :3] > 215).astype(np.uint8)
+    maska = (img[:, :, :3] > 220).astype(np.uint8)
     maska = maska[:, :, 0] * maska[:, :, 1] * maska[:, :, 2]
     maskb = (img[:, :, :3] < 50).astype(np.uint8)
     maskb = maskb[:, :, 0] * maskb[:, :, 1] * maskb[:, :, 2]
@@ -53,7 +53,7 @@ def binarize(img):
     mask = skm.binary_closing(mask)
     mask = skm.binary_dilation(mask)
     mask = skm.binary_erosion(mask)
-    mask = skm.remove_small_objects(mask, min_size=300000, connectivity=1, in_place=False)
+    mask = skm.remove_small_objects(mask, min_size=200000, connectivity=1, in_place=False)
     mask = skm.remove_small_holes(mask, area_threshold=200000, connectivity=1, in_place=False)
 
     return mask
