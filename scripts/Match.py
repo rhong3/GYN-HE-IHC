@@ -2,7 +2,7 @@
 import pandas as pd
 
 if __name__ == '__main__':
-    ref = pd.read_csv('../align/final_summary.csv', header=0)
+    ref = pd.read_csv('../align/final_summary_full.csv', header=0)
     for idx, row in ref.iterrows():
         IHC = row['IHC_ID'].split('-')[-1]
         for level in range(1, 4):

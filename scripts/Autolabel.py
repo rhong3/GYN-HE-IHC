@@ -100,7 +100,7 @@ def main_p(HE_File, PID, HEID, IHC_File, IHC_ID, *args):
 
 
 if __name__ == '__main__':
-    ref = pd.read_csv('../align/final_summary_2.csv', header=0)
+    ref = pd.read_csv('../align/final_summary_full.csv', header=0)
     # create multiporcessing pool
     print(mp.cpu_count())
     pool = mp.Pool(processes=mp.cpu_count())
