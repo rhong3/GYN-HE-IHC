@@ -214,7 +214,7 @@ if __name__ == "__main__":
             if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'MSI_PMS2-MLH1', 'MSI_MSH2-MSH6',
                             'MSI_PMS2-MLH1-MSH2-MSH6', 'Serous-like_P53', 'TP53_P53']:
                 test_tiles = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
-                ihc = opt.pdmd.split('_')[1]
+                ihc = opt.pdmd.split('_')
                 for idx, row in datapd.iterrows():
                     test_tiles_list = Sample_prep.ihc_tile_ids_in(ihc, row['slide'], row['level'], row['path'], row['label'])
                     test_tiles = pd.concat([test_tiles, test_tiles_list])

@@ -44,11 +44,15 @@ def tile_ids_in(slide, level, root_dir, label):
 
 def ihc_tile_ids_in(ihcl, slide, level, root_dir, label):
     if os.path.isdir(root_dir):
-        if list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir))):
-            print('{}/{} mapping exists.'.format(slide, ihcl))
+        feature = ihcl[0]
+        ih = ihcl[1]
+        if list(filter(lambda file: '{}_label.csv'.format(ih) in file, os.listdir(root_dir))):
+            print('{}/{} mapping exists.'.format(slide, ih))
             prpd = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
-            for ff in list(filter(lambda file: '{}_label.csv'.format(ihcl) in file, os.listdir(root_dir))):
+            for ff in list(filter(lambda file: '{}_label.csv'.format(ih) in file, os.listdir(root_dir))):
                 la = pd.read_csv(root_dir + '/' + ff, header=0, usecols=['Loc', 'label'])
+                if feature == "MSI":
+                    la['label'] = np.abs(1 - la['label'])
                 la['level'] = level
                 la = la.rename(index=str, columns={"Loc": "path"})
                 la['slide'] = slide
@@ -57,7 +61,7 @@ def ihc_tile_ids_in(ihcl, slide, level, root_dir, label):
                 prpd = prpd.append(la)
             prpd = sku.shuffle(prpd)
         else:
-            print('{}/{} mapping does not exist.'.format(slide, ihcl))
+            print('{}/{} mapping does not exist.'.format(slide, ih))
             pr = tile_ids_in(slide, level, root_dir, label)
             prpd = pd.DataFrame(pr, columns=['slide', 'level', 'path', 'label'])
     else:
