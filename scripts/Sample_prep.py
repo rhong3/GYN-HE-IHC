@@ -138,7 +138,7 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
                     la = la.rename(index=str, columns={"Loc": "L0path", "label": "L0label"})
                     lb = pd.read_csv(root_dir + 'level2/' + ff, header=0, usecols=['X', 'Y', 'Loc', 'label'])
                     if feature == "MSI":
-                        la['label'] = np.abs(1-la['label'])
+                        lb['label'] = np.abs(1-lb['label'])
                     lb['level'] = 2
                     lb['X'] = lb['X'] / fac
                     lb['X'] = lb['X'].round(0)
@@ -147,7 +147,7 @@ def IHC_paired_tile_ids_in(ihcl, slide, label, root_dir, age=None, BMI=None):
                     lb = lb.rename(index=str, columns={"Loc": "L1path", "label": "L1label"})
                     lc = pd.read_csv(root_dir + 'level3/' + ff, header=0, usecols=['X', 'Y', 'Loc', 'label'])
                     if feature == "MSI":
-                        la['label'] = np.abs(1-la['label'])
+                        lc['label'] = np.abs(1-lc['label'])
                     lc['level'] = 3
                     lc['X'] = lc['X'] / fac
                     lc['X'] = lc['X'].round(0)

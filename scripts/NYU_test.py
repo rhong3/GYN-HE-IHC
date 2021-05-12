@@ -7,7 +7,6 @@ Created on 10/28/2020
 """
 import os
 import argparse
-import numpy as np
 import tensorflow as tf
 import pandas as pd
 import cnn5
@@ -116,8 +115,8 @@ if __name__ == "__main__":
                             'MSI_PMS2-MLH1-MSH2-MSH6', 'Serous-like_P53', 'TP53_P53']:
                 ihc = opt.pdmd.split('_')
                 for idx, row in datapd.iterrows():
-                    tile_ids = Sample_prep.IHC_paired_tile_ids_in(ihc, row['slide'], row['label'], row['path'], row['age'],
-                                                                  row['BMI'])
+                    tile_ids = Sample_prep.IHC_paired_tile_ids_in(ihc, row['slide'], row['label'], row['path'],
+                                                                  row['age'], row['BMI'])
                     test_tiles = pd.concat([test_tiles, tile_ids])
             else:
                 for idx, row in datapd.iterrows():
