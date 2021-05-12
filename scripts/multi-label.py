@@ -30,7 +30,7 @@ if __name__ == '__main__':
                                                                                 row['H&E_ID']),
                                    header=0, usecols=['Num', 'label'])
                 out_dictb = MSH2.merge(MSH6, how='inner', on='Num', suffixes=['_MSH2', '_MSH6'])
-                out_dictb['label'] = out_dictb['label_MSH2'] + out_dicta['label_MSH6']
+                out_dictb['label'] = out_dictb['label_MSH2'] + out_dictb['label_MSH6']
                 out_dictb['label'] = out_dictb['label'].clip(lower=0, upper=1)
                 out_dictb = out_dictb[['Num', 'X_pos', 'Y_pos', 'X', 'Y', 'Loc', 'label']]
                 out_dictb.to_csv(
@@ -58,7 +58,7 @@ if __name__ == '__main__':
                 out_dicta = out_dicta[['Num', 'X_pos', 'Y_pos', 'X', 'Y', 'Loc', 'label']]
 
                 out_dictb = MSH2.merge(MSH6, how='inner', on='Num', suffixes=['_MSH2', '_MSH6'])
-                out_dictb['label'] = out_dictb['label_MSH2'] + out_dicta['label_MSH6']
+                out_dictb['label'] = out_dictb['label_MSH2'] + out_dictb['label_MSH6']
                 out_dictb['label'] = out_dictb['label'].clip(lower=0, upper=1)
                 out_dictb = out_dictb[['Num', 'X_pos', 'Y_pos', 'X', 'Y', 'Loc', 'label']]
 
