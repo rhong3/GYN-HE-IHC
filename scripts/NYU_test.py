@@ -7,6 +7,7 @@ Created on 10/28/2020
 """
 import os
 import argparse
+import numpy as np
 import tensorflow as tf
 import pandas as pd
 import cnn5
@@ -87,7 +88,8 @@ if __name__ == "__main__":
                     big_images.append(
                         [row['name'], int(row['subtype_{}'.format(opt.pdmd)]), img_dir + "{}/".format(str(row['name'])),
                          row['age'], row['BMI']])
-            elif opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53']:
+            elif opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'MSI_PMS2_MLH1', 'MSI_MSH2_MSH6',
+                              'MSI_PMS2_MLH1_MSH2_MSH6', 'Serous-like_P53']:
                 ref = ref.loc[ref['subtype_0NA'] == 0]
                 for idx, row in ref.iterrows():
                     big_images.append(
@@ -110,8 +112,9 @@ if __name__ == "__main__":
             datapd = datapd.dropna(subset=['slide', 'label', 'path'])
 
             test_tiles = pd.DataFrame(columns=['slide', 'label', 'L0path', 'L1path', 'L2path', 'age', 'BMI'])
-            if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53', 'TP53_P53']:
-                ihc = opt.pdmd.split('_')[1]
+            if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'MSI_PMS2_MLH1', 'MSI_MSH2_MSH6',
+                            'MSI_PMS2_MLH1_MSH2_MSH6', 'Serous-like_P53', 'TP53_P53']:
+                ihc = opt.pdmd.split('_')
                 for idx, row in datapd.iterrows():
                     tile_ids = Sample_prep.IHC_paired_tile_ids_in(ihc, row['slide'], row['label'], row['path'], row['age'],
                                                                   row['BMI'])
@@ -178,7 +181,8 @@ if __name__ == "__main__":
                     big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 0])
                 for i in posimg:
                     big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 1])
-            elif opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53']:
+            elif opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'MSI_PMS2_MLH1', 'MSI_MSH2_MSH6',
+                              'MSI_PMS2_MLH1_MSH2_MSH6', 'Serous-like_P53']:
                 ref = ref.loc[ref['subtype_0NA'] == 0]
                 negimg = Sample_prep.intersection(ref.loc[ref['subtype_{}'.format(opt.pdmd.split('_')[0])] == 0]['name'].tolist(),
                                                   allimg)
@@ -207,7 +211,8 @@ if __name__ == "__main__":
                     big_images.append([i, level, img_dir + "{}/level{}".format(i, level), 1])
 
             datapd = pd.DataFrame(big_images, columns=['slide', 'level', 'path', 'label'])
-            if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'Serous-like_P53', 'TP53_P53']:
+            if opt.pdmd in ['MSI_PMS2', 'MSI_MSH6', 'MSI_MSH2', 'MSI_MLH1', 'MSI_PMS2_MLH1', 'MSI_MSH2_MSH6',
+                            'MSI_PMS2_MLH1_MSH2_MSH6', 'Serous-like_P53', 'TP53_P53']:
                 test_tiles = pd.DataFrame(columns=['slide', 'level', 'path', 'label'])
                 ihc = opt.pdmd.split('_')[1]
                 for idx, row in datapd.iterrows():
