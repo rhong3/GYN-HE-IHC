@@ -237,3 +237,4 @@ if __name__ == "__main__":
             m.inference(datasets, opt.dirr, testset=tes, pmd=opt.pdmd.split('_')[0], bs=bs)
         else:
             print("Not enough testing images!")
+
