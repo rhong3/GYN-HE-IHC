@@ -1,7 +1,7 @@
 """
-XeptionV1 for TF2.0
+Panoptes2 for TF2.0
 
-Created on 04/17/2019
+Created on 01/21/2020
 
 @author: RH
 """
@@ -14,8 +14,8 @@ from keras.layers.merge import concatenate, add
 from keras.regularizers import l2
 
 
-def resnet_v2_stem(input, train=True):
-    '''The stem of the pure Inception-v4 and Inception-ResNet-v2 networks. This is input part of those networks.'''
+def resnet_v2_stem(input):
+    # The stem of the pure Inception-v4 and Inception-ResNet-v2 networks. This is input part of those networks.
 
     # Input shape is 299 * 299 * 3 (Tensorflow dimension ordering)
     x = Conv2D(32, (3, 3), kernel_regularizer=l2(0.0002), activation="relu", strides=(2, 2))(input)  # 149 * 149 * 32
@@ -49,8 +49,8 @@ def resnet_v2_stem(input, train=True):
     return x
 
 
-def inception_resnet_v2_A(input, scale_residual=True, train=True):
-    '''Architecture of Inception_ResNet_A block which is a 35 * 35 grid module.'''
+def inception_resnet_v2_A(input, scale_residual=True):
+    # Architecture of Inception_ResNet_A block which is a 35 * 35 grid module.
 
     ar1 = Conv2D(32, (1, 1), kernel_regularizer=l2(0.0002), activation="relu", padding="same")(input)
 
@@ -73,8 +73,8 @@ def inception_resnet_v2_A(input, scale_residual=True, train=True):
     return output
 
 
-def inception_resnet_v2_B(input, scale_residual=True, train=True):
-    '''Architecture of Inception_ResNet_B block which is a 17 * 17 grid module.'''
+def inception_resnet_v2_B(input, scale_residual=True):
+    # Architecture of Inception_ResNet_B block which is a 17 * 17 grid module.
 
     br1 = Conv2D(192, (1, 1), kernel_regularizer=l2(0.0002), activation="relu", padding="same")(input)
 
@@ -94,8 +94,8 @@ def inception_resnet_v2_B(input, scale_residual=True, train=True):
     return output
 
 
-def inception_resnet_v2_C(input, scale_residual=True, train=True):
-    '''Architecture of Inception_ResNet_C block which is a 8 * 8 grid module.'''
+def inception_resnet_v2_C(input, scale_residual=True):
+    # Architecture of Inception_ResNet_C block which is a 8 * 8 grid module.
 
     cr1 = Conv2D(192, (1, 1), kernel_regularizer=l2(0.0002), activation="relu", padding="same")(input)
 
@@ -115,8 +115,8 @@ def inception_resnet_v2_C(input, scale_residual=True, train=True):
     return output
 
 
-def reduction_resnet_A(input, k=192, l=224, m=256, n=384, train=True):
-    '''Architecture of a 35 * 35 to 17 * 17 Reduction_ResNet_A block. It is used by both v1 and v2 Inception-ResNets.'''
+def reduction_resnet_A(input, k=192, l=224, m=256, n=384):
+    # Architecture of a 35 * 35 to 17 * 17 Reduction_ResNet_A block. It is used by both v1 and v2 Inception-ResNets.
 
     rar1 = MaxPooling2D((3, 3), strides=(2, 2))(input)
 
@@ -133,8 +133,8 @@ def reduction_resnet_A(input, k=192, l=224, m=256, n=384, train=True):
     return rar
 
 
-def reduction_resnet_v2_B(input, train=True):
-    '''Architecture of a 17 * 17 to 8 * 8 Reduction_ResNet_B block.'''
+def reduction_resnet_v2_B(input):
+    # Architecture of a 17 * 17 to 8 * 8 Reduction_ResNet_B block.
 
     rbr1 = MaxPooling2D((3, 3), strides=(2, 2), padding="valid")(input)
 
@@ -157,19 +157,19 @@ def reduction_resnet_v2_B(input, train=True):
 
 def Branch(input, dropout_keep_prob=0.8, num_classes=1000, is_training=True):
     # Input shape is 299 * 299 * 3
-    x = resnet_v2_stem(input, train=is_training)  # Output: 35 * 35 * 256
+    x = resnet_v2_stem(input)  # Output: 35 * 35 * 256
 
     # 5 x Inception A
     for i in range(5):
-        x = inception_resnet_v2_A(x, train=is_training)
+        x = inception_resnet_v2_A(x)
         # Output: 35 * 35 * 256
 
     # Reduction A
-    x = reduction_resnet_A(x, k=256, l=256, m=384, n=384, train=is_training)  # Output: 17 * 17 * 896
+    x = reduction_resnet_A(x, k=256, l=256, m=384, n=384)  # Output: 17 * 17 * 896
 
     # 10 x Inception B
     for i in range(10):
-        x = inception_resnet_v2_B(x, train=is_training)
+        x = inception_resnet_v2_B(x)
         # Output: 17 * 17 * 896
 
     # auxiliary
@@ -193,11 +193,11 @@ def Branch(input, dropout_keep_prob=0.8, num_classes=1000, is_training=True):
     loss2_classifier = Dense(num_classes, name='loss2/classifier', kernel_regularizer=l2(0.0002))(loss2_drop_fc)
 
     # Reduction B
-    x = reduction_resnet_v2_B(x, train=is_training)  # Output: 8 * 8 * 1792
+    x = reduction_resnet_v2_B(x)  # Output: 8 * 8 * 1792
 
     # 5 x Inception C
     for i in range(5):
-        x = inception_resnet_v2_C(x, train=is_training)
+        x = inception_resnet_v2_C(x)
         # Output: 8 * 8 * 1792
 
     x = Conv2D(896, (1, 1), kernel_regularizer=l2(0.0002), activation="relu", padding="same")(x)
@@ -205,14 +205,15 @@ def Branch(input, dropout_keep_prob=0.8, num_classes=1000, is_training=True):
     return x, loss2_classifier
 
 
-def X1(inputa, inputb, inputc, demographics=None,
-               dropout=0.8, num_cls=1000, is_train=True, scope='X1', supermd=False):
-    with tf.variable_scope(scope, 'X1', [inputa, inputb, inputc]):
+def Panoptes2(inputa, inputb, inputc, demographics=None,
+               dropout=0.8, num_cls=1000, is_train=True, scope='Panoptes2', supermd=False):
+    with tf.variable_scope(scope, 'Panoptes2', [inputa, inputb, inputc]):
 
         xa, auxa = Branch(inputa, dropout_keep_prob=dropout, num_classes=num_cls, is_training=is_train)
         xb, auxb = Branch(inputb, dropout_keep_prob=dropout, num_classes=num_cls, is_training=is_train)
         xc, auxc = Branch(inputc, dropout_keep_prob=dropout, num_classes=num_cls, is_training=is_train)
 
+        # branch concatenation
         x = concatenate([xa, xb, xc], axis=3) # Output: 8 * 8 * 2688
 
         net = x
@@ -225,6 +226,7 @@ def X1(inputa, inputb, inputc, demographics=None,
         pool5_drop_10x10_s1 = Dropout(dropout)(x, training=is_train)
 
         if supermd:
+            # integration of clinical variables
             demographics = Dense(2, name='demographic_fc1', activation="relu", kernel_regularizer=l2(0.0002))(
                 demographics)
             merged = concatenate([pool5_drop_10x10_s1, demographics])
