@@ -93,46 +93,47 @@ class INCEPTION:
         dm_in = tf.placeholder(dtype=tf.float32, name="demographic")
         dm_in_reshape = tf.reshape(dm_in, [-1, 2])
 
-        if model == 'X1' or model == 'F1':
-            import X1
-            logits, nett, ww = X1.X1(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
+        # determine architecture to use
+        if model == 'P1' or model == 'PC1':
+            import Panoptes1
+            logits, nett, ww = Panoptes1.Panoptes1(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
                                                    num_cls=classes,
                                                    is_train=is_train,
                                                    dropout=dropout,
-                                                   scope='X1', supermd=sup)
-            print('Using X1')
-        elif model == 'X2' or model == 'F2':
-            import X2
-            logits, nett, ww = X2.X2(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
+                                                   scope='P1', supermd=sup)
+            print('Using Panoptes1')
+        elif model == 'P2' or model == 'PC2':
+            import Panoptes2
+            logits, nett, ww = Panoptes2.Panoptes2(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
                                                    num_cls=classes,
                                                    is_train=is_train,
                                                    dropout=dropout,
-                                                   scope='X2', supermd=sup)
-            print('Using X2')
-        elif model == 'X3' or model == 'F3':
-            import X3
-            logits, nett, ww = X3.X3(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
+                                                   scope='P2', supermd=sup)
+            print('Using Panoptes2')
+        elif model == 'P3' or model == 'PC3':
+            import Panoptes3
+            logits, nett, ww = Panoptes3.Panoptes3(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
                                                    num_cls=classes,
                                                    is_train=is_train,
                                                    dropout=dropout,
-                                                   scope='X3', supermd=sup)
-            print('Using X3')
-        elif model == 'X4' or model == 'F4':
-            import X4
-            logits, nett, ww = X4.X4(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
+                                                   scope='P3', supermd=sup)
+            print('Using Panoptes3')
+        elif model == 'P4' or model == 'PC4':
+            import Panoptes4
+            logits, nett, ww = Panoptes4.Panoptes4(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
                                                    num_cls=classes,
                                                    is_train=is_train,
                                                    dropout=dropout,
-                                                   scope='X4', supermd=sup)
-            print('Using X4')
+                                                   scope='P4', supermd=sup)
+            print('Using Panoptes4')
         else:
-            import X1
-            logits, nett, ww = X1.X1(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
+            import Panoptes1
+            logits, nett, ww = Panoptes1.Panoptes1(xa_in_reshape, xb_in_reshape, xc_in_reshape, dm_in_reshape,
                                                    num_cls=classes,
                                                    is_train=is_train,
                                                    dropout=dropout,
-                                                   scope='X1', supermd=sup)
-            print('Using Default: X1')
+                                                   scope='P1', supermd=sup)
+            print('Using Default: Panoptes1')
 
         pred = tf.nn.softmax(logits, name="prediction")
 
