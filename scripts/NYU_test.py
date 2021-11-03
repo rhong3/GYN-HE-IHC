@@ -43,6 +43,8 @@ METAGRAPH_DIR = "../Results/{}".format(opt.metadirr)
 data_dir = "../Results/{}/data".format(opt.dirr)
 out_dir = "../Results/{}/out".format(opt.dirr)
 
+
+### P53 IHC labeling does not make sense ###
 if __name__ == "__main__":
     tf.reset_default_graph()
     # make directories if not exist
